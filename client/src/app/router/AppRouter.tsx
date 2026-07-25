@@ -8,6 +8,7 @@ import NotFoundPage from "@/features/errors/pages/NotFoundPage";
 
 import { ROUTES } from "./routes";
 import ForgotPassword from "@/features/auth/pages/ForgotPasswordPage";
+import RegisterPage from "@/features/auth/pages/RegisterPage";
 
 const router = createBrowserRouter([
   {
@@ -21,7 +22,11 @@ const router = createBrowserRouter([
         path: ROUTES.LOGIN,
         element: <LoginPage />,
       },
-          {
+      {
+        path: ROUTES.REGISTER,
+        element: <RegisterPage/>,
+      },
+      {
         path: ROUTES.FORGOT_PASSWORD,
         element: <ForgotPassword />,
       },

@@ -101,7 +101,7 @@ export function LoginForm({
 
           <p className="text-center text-sm text-muted-foreground mt-2">
             Don&apos;t have an account?{" "}
-            <Link to={ROUTES.LOGIN} className="underline underline-offset-4 hover:text-primary">
+            <Link to={ROUTES.REGISTER} className="underline underline-offset-4 hover:text-primary">
               Sign up
             </Link>
           </p>
