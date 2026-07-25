@@ -1,3 +1,14 @@
+export interface AuthUser {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: "SUPER_ADMIN" | "ORG_ADMIN" | "AGENT";
+  tenantId: string;
+}
+/////////////////////////////////REQUESTS////////////////////////////
+
+
 export interface LoginRequest {
   email: string;
   password: string;
@@ -19,9 +30,6 @@ export interface VerifyResetCodeRequest {
   code: string;
 }
 
-export interface VerifyResetCodeResponse {
-  resetToken: string;
-}
 
 export interface ResetPasswordRequest {
   password: string;
@@ -29,16 +37,18 @@ export interface ResetPasswordRequest {
   resetToken: string;
 }
 
-export interface AuthUser {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: "SUPER_ADMIN" | "ORG_ADMIN" | "AGENT";
-  tenantId: string;
-}
+
+/////////////////////////////RESPONSES///////////////////////////////
+
 
 export interface AuthResponse {
   accessToken: string;
   user: AuthUser;
 }
+
+
+export interface VerifyResetCodeResponse {
+  resetToken: string;
+}
+
+
