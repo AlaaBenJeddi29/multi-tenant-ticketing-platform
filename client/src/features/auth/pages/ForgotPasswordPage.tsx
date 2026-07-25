@@ -9,7 +9,7 @@ import AuthBackgroundShape from '@/assets/svg/auth-background-shape'
 import Logo from '@/components/shadcn-studio/logo'
 import { ROUTES } from '@/app/router/routes' // Adjust path if needed
 
-const ForgotPassword = () => {
+const ForgotPasswordPage = () => {
   const navigate = useNavigate()
 
   return (
@@ -50,4 +50,4 @@ const ForgotPassword = () => {
   )
 }
 
-export default ForgotPassword
+export default ForgotPasswordPage

@@ -2,15 +2,20 @@
 
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useNavigate } from 'react-router-dom'
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Field, FieldLabel, FieldGroup, FieldError } from '@/components/ui/field'
+import { ROUTES } from '@/app/router/routes'
 import {
   forgotPasswordSchema,
   type ForgotPasswordFormData,
-} from '@/features/auth/schemas/forgot-password.schema' // Adjust this import path to match your folder structure
+} from '@/features/auth/schemas/forgot-password.schema'
 
 const ForgotPasswordForm = () => {
+  const navigate = useNavigate()
+
   const {
     register,
     handleSubmit,
@@ -19,9 +24,13 @@ const ForgotPasswordForm = () => {
     resolver: zodResolver(forgotPasswordSchema),
   })
 
-  const onSubmit = (data: ForgotPasswordFormData) => {
-    // Replace with your API call/auth service (e.g. await sendPasswordResetEmail(data.email))
+  const onSubmit = async (data: ForgotPasswordFormData) => {
     console.log('Forgot Password Request Data:', data)
+    
+    // 1. Call your API here (e.g., await sendResetEmail(data))
+    
+    // 2. Navigate to reset password page on success
+    navigate(ROUTES.RESET_PASSWORD)
   }
 
   return (
