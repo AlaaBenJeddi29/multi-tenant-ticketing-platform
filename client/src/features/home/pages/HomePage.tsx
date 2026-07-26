@@ -1,22 +1,25 @@
-import { Link } from "react-router-dom";
-
-import { ROUTES } from "@/app/router/routes";
+import { useAuth } from "@/features/auth/context/AuthContext";
 
 export default function HomePage() {
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-6">
+  const { user, isAuthenticated } = useAuth();
 
-      <h1 className="text-5xl font-bold">
-        Multi-Tenant Ticketing Platform
+  return (
+    <div className="p-10">
+      <h1 className="text-4xl font-bold">
+        Home
       </h1>
 
-      <Link
-        to={ROUTES.LOGIN}
-        className="rounded bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
-      >
-        Login
-      </Link>
+      <p className="mt-5">
+        Authenticated:
 
+        {" "}
+
+        {isAuthenticated ? "Yes" : "No"}
+      </p>
+
+      <pre className="mt-6 rounded bg-black p-5 text-green-400">
+        {JSON.stringify(user, null, 2)}
+      </pre>
     </div>
   );
 }

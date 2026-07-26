@@ -1,21 +1,23 @@
 import type { ReactNode } from "react";
 
 import { QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 import { queryClient } from "@/lib/react-query";
 
-type AppProvidersProps = {
+import { AuthProvider } from "@/features/auth/context/AuthContext";
+
+type Props = {
   children: ReactNode;
 };
 
 export default function AppProviders({
   children,
-}: AppProvidersProps) {
+}: Props) {
   return (
     <QueryClientProvider client={queryClient}>
-      {children}
-      <ReactQueryDevtools initialIsOpen={false} />
+      <AuthProvider>
+        {children}
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

@@ -9,12 +9,14 @@ import type {
   AuthResponse,
 } from "../types/auth.types";
 
-export const login = async (
-  data: LoginRequest
-): Promise<AuthResponse> => {
-  const response = await api.post("/auth/login", data);
+export async function login(data: LoginRequest) {
+  const response = await api.post<AuthResponse>(
+    "/auth/login",
+    data
+  );
+
   return response.data;
-};
+}
 
 export const register = async (
   data: RegisterRequest

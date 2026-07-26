@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+
 import { cn } from "@/lib/utils";
+
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -11,13 +13,22 @@ import {
   FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { ROUTES } from "@/app/router/routes";  
-import { loginSchema, type LoginFormData } from "@/features/auth/schemas/login.schema";
+
+import { ROUTES } from "@/app/router/routes";
+
+import {
+  loginSchema,
+  type LoginFormData,
+} from "@/features/auth/schemas/login.schema";
+
+import { useLogin } from "@/features/auth/hooks/useLogin";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
+  const loginMutation = useLogin();
+
   const {
     register,
     handleSubmit,
@@ -27,85 +38,151 @@ export function LoginForm({
   });
 
   const onSubmit = (data: LoginFormData) => {
-    console.log("Login form data:", data);
+    loginMutation.mutate(data);
   };
 
   return (
     <form
-      className={cn("flex flex-col gap-6 w-full", className)}
       onSubmit={handleSubmit(onSubmit)}
+      className={cn("flex flex-col gap-6 w-full", className)}
       {...props}
     >
       <FieldGroup>
-        <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Login to your account</h1>
-          <p className="text-sm text-balance text-muted-foreground">
-            Enter your email below to login to your account
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">
+            Welcome back
+          </h1>
+
+          <p className="mt-2 text-sm text-muted-foreground">
+            Sign in to continue to your workspace.
           </p>
         </div>
 
-        {/* EMAIL FIELD */}
         <Field>
-          <FieldLabel htmlFor="email">Email</FieldLabel>
+          <FieldLabel htmlFor="email">
+            Email
+          </FieldLabel>
+
           <Input
             id="email"
             type="email"
-            placeholder="m@example.com"
-            className="bg-background"
-            aria-invalid={errors.email ? "true" : "false"}
+            placeholder="john@example.com"
+            autoComplete="email"
             {...register("email")}
+            aria-invalid={!!errors.email}
           />
-          <FieldError errors={errors.email ? [{ message: errors.email.message }] : []} />
+
+          <FieldError
+            errors={
+              errors.email
+                ? [{ message: errors.email.message }]
+                : []
+            }
+          />
         </Field>
 
-        {/* PASSWORD FIELD */}
         <Field>
-          {/* BEST PRACTICE: Row container with explicit space-between */}
-          <div className="flex items-center justify-between w-full">
-            <FieldLabel htmlFor="password">Password</FieldLabel>
+          <div className="flex items-center justify-between">
+            <FieldLabel htmlFor="password">
+              Password
+            </FieldLabel>
+
             <Link
               to={ROUTES.FORGOT_PASSWORD}
-              className="text-sm text-muted-foreground underline-offset-4 hover:underline hover:text-primary transition-colors"
+              className="text-sm text-muted-foreground hover:text-primary underline-offset-4 hover:underline"
             >
-              Forgot your password?
+              Forgot password?
             </Link>
           </div>
+
           <Input
             id="password"
             type="password"
-            className="bg-background"
-            aria-invalid={errors.password ? "true" : "false"}
+            autoComplete="current-password"
             {...register("password")}
+            aria-invalid={!!errors.password}
           />
-          <FieldError errors={errors.password ? [{ message: errors.password.message }] : []} />
+
+          <FieldError
+            errors={
+              errors.password
+                ? [{ message: errors.password.message }]
+                : []
+            }
+          />
         </Field>
 
-        <Field>
-          <Button type="submit" className="w-full">
-            Login
-          </Button>
-        </Field>
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={loginMutation.isPending}
+        >
+          {loginMutation.isPending
+            ? "Signing in..."
+            : "Sign in"}
+        </Button>
 
-        <FieldSeparator>Or continue with</FieldSeparator>
+        <FieldSeparator>
+          Or continue with
+        </FieldSeparator>
 
-        <Field>
-          <Button variant="outline" type="button" className="w-full">
-            <svg className="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-              <path
-                d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"
-                fill="currentColor"
-              />
-            </svg>
-            Login with GitHub
-          </Button>
+        <Button
+          variant="outline"
+          type="button"
+          className="w-full"
+        >
+          <svg
+            className="mr-2 h-4 w-4"
+            viewBox="0 0 24 24"
+          >
+            <path
+              fill="currentColor"
+              d="M12 .297c-6.63 0-12 5.373-12 12
+              0 5.303 3.438 9.8 8.205 11.385
+              .6.113.82-.258.82-.577
+              0-.285-.01-1.04-.015-2.04
+              -3.338.724-4.042-1.61-4.042-1.61
+              -.546-1.385-1.335-1.755-1.335-1.755
+              -1.087-.744.084-.729.084-.729
+              1.205.084 1.838 1.236 1.838 1.236
+              1.07 1.835 2.809 1.305 3.495.998
+              .108-.776.417-1.305.76-1.605
+              -2.665-.3-5.466-1.332-5.466-5.93
+              0-1.31.465-2.38 1.235-3.22
+              -.135-.303-.54-1.523.105-3.176
+              0 0 1.005-.322 3.3 1.23
+              .96-.267 1.98-.399 3-.405
+              1.02.006 2.04.138 3 .405
+              2.28-1.552 3.285-1.23 3.285-1.23
+              .645 1.653.24 2.873.12 3.176
+              .765.84 1.23 1.91 1.23 3.22
+              0 4.61-2.805 5.625-5.475 5.92
+              .42.36.81 1.096.81 2.22
+              0 1.606-.015 2.896-.015 3.286
+              0 .315.21.69.825.57
+              C20.565 22.092 24 17.592 24 12.297
+              c0-6.627-5.373-12-12-12"
+            />
+          </svg>
 
-          <p className="text-center text-sm text-muted-foreground mt-2">
-            Don&apos;t have an account?{" "}
-            <Link to={ROUTES.REGISTER} className="underline underline-offset-4 hover:text-primary">
-              Sign up
-            </Link>
+          Continue with GitHub
+        </Button>
+
+        <p className="text-center text-sm text-muted-foreground">
+          Don't have an account?{" "}
+          <Link
+            to={ROUTES.REGISTER}
+            className="font-medium underline underline-offset-4 hover:text-primary"
+          >
+            Create one
+          </Link>
+        </p>
+
+        {loginMutation.isError && (
+          <p className="text-center text-sm text-red-500">
+            Invalid email or password.
           </p>
-        </Field>
+        )}
       </FieldGroup>
     </form>
   );
