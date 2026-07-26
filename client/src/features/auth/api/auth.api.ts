@@ -9,22 +9,49 @@ import type {
   AuthResponse,
 } from "../types/auth.types";
 
-export const authApi = {
-  login: (data: LoginRequest) =>
-    api.post<AuthResponse>("/auth/login", data),
+export const login = async (
+  data: LoginRequest
+): Promise<AuthResponse> => {
+  const response = await api.post("/auth/login", data);
+  return response.data;
+};
 
-  register: (data: RegisterRequest) =>
-    api.post<AuthResponse>("/auth/register", data),
+export const register = async (
+  data: RegisterRequest
+) => {
+  const response = await api.post("/auth/register", data);
+  return response.data;
+};
 
-  forgotPassword: (data: ForgotPasswordRequest) =>
-    api.post("/auth/forgot-password", data),
+export const forgotPassword = async (
+  data: ForgotPasswordRequest
+) => {
+  const response = await api.post(
+    "/auth/forgot-password",
+    data
+  );
 
-  verifyResetCode: (data: VerifyResetCodeRequest) =>
-    api.post<{ resetToken: string }>("/auth/verify-reset-code", data),
+  return response.data;
+};
 
-  resetPassword: (data: ResetPasswordRequest) =>
-    api.post("/auth/reset-password", data),
+export const verifyResetCode = async (
+  data: VerifyResetCodeRequest
+) => {
+  const response = await api.post(
+    "/auth/verify-reset-code",
+    data
+  );
 
-  logout: () =>
-    api.post("/auth/logout"),
+  return response.data;
+};
+
+export const resetPassword = async (
+  data: ResetPasswordRequest
+) => {
+  const response = await api.post(
+    "/auth/reset-password",
+    data
+  );
+
+  return response.data;
 };

@@ -1,13 +1,16 @@
+export type UserRole =
+  | "SUPER_ADMIN"
+  | "ORG_ADMIN"
+  | "AGENT";
+
 export interface AuthUser {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
-  role: "SUPER_ADMIN" | "ORG_ADMIN" | "AGENT";
+  role: UserRole;
   tenantId: string;
 }
-/////////////////////////////////REQUESTS////////////////////////////
-
 
 export interface LoginRequest {
   email: string;
@@ -19,8 +22,8 @@ export interface RegisterRequest {
   lastName: string;
   email: string;
   password: string;
-  confirmPassword: string;
 }
+
 export interface ForgotPasswordRequest {
   email: string;
 }
@@ -30,25 +33,15 @@ export interface VerifyResetCodeRequest {
   code: string;
 }
 
-
 export interface ResetPasswordRequest {
+  email: string;
+  code: string;
   password: string;
   confirmPassword: string;
-  resetToken: string;
 }
-
-
-/////////////////////////////RESPONSES///////////////////////////////
-
 
 export interface AuthResponse {
   accessToken: string;
+  refreshToken: string;
   user: AuthUser;
 }
-
-
-export interface VerifyResetCodeResponse {
-  resetToken: string;
-}
-
-
