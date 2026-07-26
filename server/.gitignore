@@ -1,0 +1,77 @@
+# ------------------------------------------------------------------------------
+# ENVIRONMENT VARIABLES & SECRETS (CRITICAL - NEVER COMMIT)
+# ------------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# Security & Credentials
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.p12
+
+# ------------------------------------------------------------------------------
+# DEPENDENCIES
+# ------------------------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-store/
+
+# ------------------------------------------------------------------------------
+# BUILD OUTPUTS & TRANSPILED CODE (TypeScript / Babel)
+# ------------------------------------------------------------------------------
+dist/
+build/
+bin/
+out/
+*.tsbuildinfo
+
+# ------------------------------------------------------------------------------
+# LOGS & UPLOADS
+# ------------------------------------------------------------------------------
+logs/
+*.log
+# Local user uploads / temp files (if applicable to your Express app)
+uploads/
+tmp/
+temp/
+
+# ------------------------------------------------------------------------------
+# TESTING & COVERAGE
+# ------------------------------------------------------------------------------
+coverage/
+.nyc_output/
+.jest/
+
+# ------------------------------------------------------------------------------
+# OS & EDITOR FILES
+# ------------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# IDE Configs (keeps shared settings, ignores workspace state)
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+
+# ------------------------------------------------------------------------------
+# CACHE & RUNTIME
+# ------------------------------------------------------------------------------
+.cache/
+.eslintcache
+.nodemonignore
