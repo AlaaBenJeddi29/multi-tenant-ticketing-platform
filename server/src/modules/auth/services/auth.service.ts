@@ -67,15 +67,15 @@ export async function login(data: LoginDto) {
     }
   );
 
-  return {
-    accessToken: token,
-    user: {
-      id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      role: user.role,
-      tenantId: user.organizationId,
-    },
-  };
+return {
+  token,
+  user: {
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    role: user.role,
+    tenantId: user.organizationId,
+  },
+};
 }
