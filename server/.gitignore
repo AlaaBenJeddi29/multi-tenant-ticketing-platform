@@ -75,3 +75,4 @@ Thumbs.db
 .cache/
 .eslintcache
 .nodemonignore
+/src/generated/prisma
