@@ -6,6 +6,9 @@ export async function findUserByEmail(email: string) {
     where: {
       email,
     },
+    include: {
+      organization: true,
+    },
   });
 }
 
@@ -29,6 +32,11 @@ export async function createOrganization(
   });
 }
 
+
+
+
+
+
 export async function createUser(
   dto: RegisterDto,
   passwordHash: string,
@@ -43,4 +51,5 @@ export async function createUser(
       organizationId,
     },
   });
+  
 }
