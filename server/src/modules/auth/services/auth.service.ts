@@ -8,6 +8,7 @@ import {
   findOrganizationBySlug,
   createOrganization,
   createUser,
+  updateResetToken,
 } from "../repositories/auth.repository.js";
 import { LoginDto } from "../dto/login.dto.js";
 
@@ -39,6 +40,11 @@ export async function registerUser(dto: RegisterDto) {
     message: "User registered successfully",
   };
 }
+
+function generateResetCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
 export async function login(data: LoginDto) {
   const user = await findUserByEmail(data.email);
 
@@ -78,4 +84,29 @@ return {
     tenantId: user.organizationId,
   },
 };
+}
+
+export async function forgotPassword(email: string) {
+  const user = await findUserByEmail(email);
+
+  if (!user) {
+    return;
+  }
+
+  const code = generateResetCode();
+
+  const expires = new Date(
+    Date.now() + 15 * 60 * 1000
+  );
+
+  await updateResetToken(
+    user.id,
+    code,
+    expires
+  );
+
+  console.log("================================");
+  console.log("PASSWORD RESET CODE");
+  console.log(code);
+  console.log("================================");
 }

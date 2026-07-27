@@ -1,26 +1,22 @@
-import jwt from "jsonwebtoken";
 import type { NextFunction, Request, Response } from "express";
+import { verifyAccessToken } from "../lib/jwt.js";
 
-export interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    tenantId: string;
-    role: "SUPER_ADMIN" | "ORG_ADMIN" | "AGENT";
-  };
+export interface JwtPayload {
+  userId: string;
+  organizationId: string;
+  role: "SUPER_ADMIN" | "ORG_ADMIN" | "AGENT";
 }
 
-type JwtPayload = {
-  sub: string;
-  tenantId: string;
-  role: "SUPER_ADMIN" | "ORG_ADMIN" | "AGENT";
-};
+export interface AuthenticatedRequest extends Request {
+  user?: JwtPayload;
+}
 
 export function authenticate(
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) {
-  const token = req.cookies.accessToken;
+  const token = req.cookies?.accessToken;
 
   if (!token) {
     return res.status(401).json({
@@ -29,16 +25,9 @@ export function authenticate(
   }
 
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET!
-    ) as JwtPayload;
+    const payload = verifyAccessToken(token) as JwtPayload;
 
-    req.user = {
-      id: decoded.sub,
-      tenantId: decoded.tenantId,
-      role: decoded.role,
-    };
+    req.user = payload;
 
     next();
   } catch {
