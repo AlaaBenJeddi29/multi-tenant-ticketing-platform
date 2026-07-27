@@ -3,6 +3,7 @@ import { loginSchema } from "../dto/login.dto.js";
 import { registerSchema } from "../validators/auth.validator.js";
 import { registerUser } from "../services/auth.service.js";
 import * as authService from "../services/auth.service.js";
+import { AuthenticatedRequest } from "../../../middleware/auth.middleware.js";
 
 export async function register(
   req: Request,
@@ -62,4 +63,11 @@ export function logout(req: Request, res: Response) {
     .json({
       message: "Logged out successfully",
     });
+}
+
+export function me(
+  req: AuthenticatedRequest,
+  res: Response
+) {
+  return res.status(200).json(req.user);
 }
