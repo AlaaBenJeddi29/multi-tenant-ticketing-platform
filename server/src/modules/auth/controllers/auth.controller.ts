@@ -1,14 +1,13 @@
 import type { Request, Response } from "express";
 
 import { loginSchema } from "../dto/login.dto.js";
-import { forgotPasswordSchema } from "../dto/forgot-password.dto.js";
 import { registerSchema } from "../validators/auth.validator.js";
-
 import * as authService from "../services/auth.service.js";
-
 import type { AuthenticatedRequest } from "../../../middleware/auth.middleware.js";
 import { accessTokenCookie } from "../../../lib/cookies.js";
-
+import { forgotPasswordSchema } from "../dto/forgot-password.dto.js";
+import { verifyResetCodeSchema } from "../dto/verify-reset-code.dto.js";
+import { resetPasswordSchema } from "../dto/reset-password.dto.js";
 export async function register(
   req: Request,
   res: Response
@@ -20,11 +19,13 @@ export async function register(
 
     return res.status(201).json(result);
   } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Internal server error";
+
     return res.status(400).json({
-      message:
-        error instanceof Error
-          ? error.message
-          : "Internal server error",
+      message,
     });
   }
 }
@@ -49,11 +50,13 @@ export async function login(
         user: result.user,
       });
   } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Internal server error";
+
     return res.status(400).json({
-      message:
-        error instanceof Error
-          ? error.message
-          : "Internal server error",
+      message,
     });
   }
 }
@@ -93,6 +96,54 @@ export async function forgotPassword(
       message:
         "If an account exists, a reset code has been sent.",
     });
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Invalid request";
+
+    return res.status(400).json({
+      message,
+    });
+  }
+}
+
+export async function verifyResetCode(
+  req: Request,
+  res: Response
+) {
+  try {
+    const body =
+      verifyResetCodeSchema.parse(req.body);
+
+    const result =
+      await authService.verifyResetCode(body.code);
+
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(400).json({
+      message:
+        error instanceof Error
+          ? error.message
+          : "Invalid request",
+    });
+  }
+}
+export async function resetPassword(
+  req: Request,
+  res: Response
+) {
+  try {
+    const body =
+      resetPasswordSchema.parse(req.body);
+
+    const result =
+      await authService.resetPassword(
+        body.code,
+        body.password
+      );
+
+    return res.status(200).json(result);
   } catch (error) {
     return res.status(400).json({
       message:

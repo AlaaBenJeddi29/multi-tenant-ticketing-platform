@@ -1,5 +1,10 @@
 import jwt from "jsonwebtoken";
-import type { JwtPayload } from "../middleware/auth.middleware.js";
+
+export interface JwtPayload {
+  userId: string;
+  organizationId: string;
+  role: "SUPER_ADMIN" | "ORG_ADMIN" | "AGENT";
+}
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 

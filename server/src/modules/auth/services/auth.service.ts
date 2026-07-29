@@ -1,7 +1,6 @@
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import type { RegisterDto } from "../dto/register.dto.js";
-
+import { signAccessToken } from "../../../lib/jwt.js";
 
 import {
   findUserByEmail,
@@ -9,6 +8,11 @@ import {
   createOrganization,
   createUser,
   updateResetToken,
+  findUserByResetToken,
+  verifyResetToken,
+  clearResetToken,
+  findUserByVerifiedResetCode,
+  updatePassword,
 } from "../repositories/auth.repository.js";
 import { LoginDto } from "../dto/login.dto.js";
 
@@ -29,12 +33,24 @@ export async function registerUser(dto: RegisterDto) {
 
   const passwordHash = await bcrypt.hash(dto.password, 10);
 
-  const organization = await createOrganization(
-    dto.organizationName,
-    dto.organizationSlug
-  );
+  const organization = await createOrganization({
+    name: dto.organizationName,
+    slug: dto.organizationSlug,
+  });
 
-  await createUser(dto, passwordHash, organization.id);
+  await createUser({
+    firstName: dto.firstName,
+    lastName: dto.lastName,
+    email: dto.email,
+    passwordHash,
+    role: "ORG_ADMIN",
+
+    organization: {
+      connect: {
+        id: organization.id,
+      },
+    },
+  });
 
   return {
     message: "User registered successfully",
@@ -61,29 +77,24 @@ export async function login(data: LoginDto) {
     throw new Error("Invalid email or password");
   }
 
-  const token = jwt.sign(
-    {
-      sub: user.id,
-      tenantId: user.organizationId,
-      role: user.role,
-    },
-    process.env.JWT_SECRET!,
-    {
-      expiresIn: "1d",
-    }
-  );
-
-return {
-  token,
-  user: {
-    id: user.id,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
+  // Uses central helper with the correct payload structure
+  const token = signAccessToken({
+    userId: user.id,
+    organizationId: user.organizationId,
     role: user.role,
-    tenantId: user.organizationId,
-  },
-};
+  });
+
+  return {
+    token,
+    user: {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      organizationId: user.organizationId,
+    },
+  };
 }
 
 export async function forgotPassword(email: string) {
@@ -110,3 +121,56 @@ export async function forgotPassword(email: string) {
   console.log(code);
   console.log("================================");
 }
+
+
+
+export async function resetPassword(
+  code: string,
+  password: string
+) {
+  const user =
+    await findUserByVerifiedResetCode(code);
+
+  if (!user) {
+    throw new Error("Invalid reset code");
+  }
+
+  const passwordHash =
+    await bcrypt.hash(password, 10);
+
+  await updatePassword(
+    user.id,
+    passwordHash
+  );
+
+  await clearResetToken(user.id);
+
+  return {
+    message: "Password updated successfully",
+  };
+}
+
+
+
+
+export async function verifyResetCode(code: string) {
+  const user = await findUserByResetToken(code);
+
+  if (!user) {
+    throw new Error("Invalid reset code");
+  }
+
+  if (
+    !user.resetPasswordExpiresAt ||
+    user.resetPasswordExpiresAt < new Date()
+  ) {
+    throw new Error("Reset code expired");
+  }
+
+  await verifyResetToken(user.id);
+
+  return {
+    message: "Reset code verified",
+  };
+}
+

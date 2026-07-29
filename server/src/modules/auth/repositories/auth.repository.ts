@@ -1,5 +1,5 @@
-import { Prisma } from "../../../generated/prisma/client.js";
 import { prisma } from "../../../lib/prisma.js";
+import type { Prisma } from "../../../generated/prisma/client.js";
 
 export async function findUserByEmail(email: string) {
   return prisma.user.findUnique({
@@ -62,6 +62,49 @@ export async function updateResetToken(
     data: {
       resetPasswordToken: token,
       resetPasswordExpiresAt: expiresAt,
+      resetPasswordVerified: false,
+    },
+  });
+}
+
+export async function findUserByResetToken(token: string) {
+  return prisma.user.findFirst({
+    where: {
+      resetPasswordToken: token,
+    },
+  });
+}
+
+export async function verifyResetToken(userId: string) {
+  return prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      resetPasswordVerified: true,
+    },
+  });
+}
+
+export async function clearResetToken(userId: string) {
+  return prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      resetPasswordToken: null,
+      resetPasswordExpiresAt: null,
+      resetPasswordVerified: false,
+    },
+  });
+}
+export async function findUserByVerifiedResetCode(
+  token: string
+) {
+  return prisma.user.findFirst({
+    where: {
+      resetPasswordToken: token,
+      resetPasswordVerified: true,
     },
   });
 }

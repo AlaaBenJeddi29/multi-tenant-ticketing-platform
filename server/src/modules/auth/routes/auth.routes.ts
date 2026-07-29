@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { forgotPassword, logout, me, register } from "../controllers/auth.controller.js";
+import { forgotPassword, logout, me, register, resetPassword, verifyResetCode } from "../controllers/auth.controller.js";
 import { login } from "../controllers/auth.controller.js";
 import { authenticate } from "../../../middleware/auth.middleware.js";
 
@@ -13,5 +13,15 @@ router.get("/me", authenticate, me);
 router.post(
     "/forgot-password",
     forgotPassword
+);
+
+router.post(
+  "/verify-reset-code",
+  verifyResetCode
+);
+
+router.post(
+  "/reset-password",
+  resetPassword
 );
 export default router;
