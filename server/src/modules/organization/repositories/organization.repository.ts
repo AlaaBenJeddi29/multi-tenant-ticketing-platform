@@ -1,8 +1,20 @@
 import { prisma } from "../../../lib/prisma.js";
 
-import type { Prisma } from "../../../generated/prisma/client.js";
+import type {
+  Prisma,
+} from "../../../generated/prisma/client.js";
 
-export function findOrganizationById(id: string) {
+export function findAllOrganizations() {
+  return prisma.organization.findMany({
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
+
+export function findOrganizationById(
+  id: string
+) {
   return prisma.organization.findUnique({
     where: {
       id,
@@ -10,7 +22,9 @@ export function findOrganizationById(id: string) {
   });
 }
 
-export function findOrganizationBySlug(slug: string) {
+export function findOrganizationBySlug(
+  slug: string
+) {
   return prisma.organization.findUnique({
     where: {
       slug,

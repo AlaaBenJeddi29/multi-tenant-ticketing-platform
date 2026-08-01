@@ -1,12 +1,11 @@
 import { z } from "zod";
 
 export const updateOrganizationSchema = z.object({
-  name: z.string().min(2).optional(),
-
-  slug: z
+  name: z
     .string()
-    .regex(/^[a-z0-9-]+$/)
-    .optional(),
+    .trim()
+    .min(3)
+    .max(100),
 });
 
 export type UpdateOrganizationDto =

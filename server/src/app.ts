@@ -5,7 +5,9 @@ import cookieParser from "cookie-parser";
 import morgan from "morgan";
 
 import authRoutes from "./modules/auth/routes/auth.routes.js";
+
 import { errorHandler } from "./middleware/error.middleware.js";
+import organizationRoutes from "./modules/organization/routes/organization.routes.js";
 
 const app = express();
 
@@ -22,7 +24,10 @@ app.use(
 // Body Parsers
 app.use(express.json());
 app.use(cookieParser());
-
+app.use(
+  "/api/organizations",
+  organizationRoutes
+);
 // API Routes
 app.use("/api/auth", authRoutes);
 
