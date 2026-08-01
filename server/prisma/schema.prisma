@@ -5,7 +5,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-
 }
 
 enum Role {
@@ -15,33 +14,37 @@ enum Role {
 }
 
 model Organization {
-  id        String   @id @default(cuid())
-  name      String
-  slug      String   @unique
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
 
-  users     User[]
+  users User[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model User {
-  id            String @id @default(cuid())
+  id String @id @default(cuid())
 
-  firstName     String
-  lastName      String
+  firstName String
+  lastName  String
 
-  email         String @unique
-  passwordHash  String
+  email        String @unique
+  passwordHash String
 
-  role          Role @default(AGENT)
+  role Role @default(AGENT)
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
+ isActive      Boolean   @default(true)
+
+  lastLoginAt DateTime?
+
   resetPasswordToken     String?
   resetPasswordExpiresAt DateTime?
-  resetPasswordVerified Boolean @default(false)
+  resetPasswordVerified  Boolean   @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

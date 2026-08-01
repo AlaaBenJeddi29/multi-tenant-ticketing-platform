@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import type { RegisterDto } from "../dto/register.dto.js";
 import { signAccessToken } from "../../../lib/jwt.js";
-
+import { AppError } from "../../../lib/AppError.js"; 
 import {
   findUserByEmail,
   findOrganizationBySlug,
@@ -20,7 +20,7 @@ export async function registerUser(dto: RegisterDto) {
   const existingUser = await findUserByEmail(dto.email);
 
   if (existingUser) {
-    throw new Error("Email already exists");
+    throw new AppError(409, "An account with this email address already exists.");
   }
 
   const existingOrganization = await findOrganizationBySlug(
@@ -28,7 +28,7 @@ export async function registerUser(dto: RegisterDto) {
   );
 
   if (existingOrganization) {
-    throw new Error("Organization slug already exists");
+    throw new AppError(409, "An organization with this slug already exists.");
   }
 
   const passwordHash = await bcrypt.hash(dto.password, 10);
@@ -53,7 +53,7 @@ export async function registerUser(dto: RegisterDto) {
   });
 
   return {
-    message: "User registered successfully",
+    message: "User registered successfully.",
   };
 }
 
@@ -65,7 +65,7 @@ export async function login(data: LoginDto) {
   const user = await findUserByEmail(data.email);
 
   if (!user) {
-    throw new Error("Invalid email or password");
+    throw new AppError(401, "Invalid email address or password.");
   }
 
   const passwordMatches = await bcrypt.compare(
@@ -74,10 +74,9 @@ export async function login(data: LoginDto) {
   );
 
   if (!passwordMatches) {
-    throw new Error("Invalid email or password");
+    throw new AppError(401, "Invalid email address or password.");
   }
 
-  // Uses central helper with the correct payload structure
   const token = signAccessToken({
     userId: user.id,
     organizationId: user.organizationId,
@@ -100,6 +99,7 @@ export async function login(data: LoginDto) {
 export async function forgotPassword(email: string) {
   const user = await findUserByEmail(email);
 
+  // Return silently to prevent user enumeration security risks
   if (!user) {
     return;
   }
@@ -122,21 +122,38 @@ export async function forgotPassword(email: string) {
   console.log("================================");
 }
 
+export async function verifyResetCode(code: string) {
+  const user = await findUserByResetToken(code);
 
+  if (!user) {
+    throw new AppError(400, "Invalid reset code.");
+  }
+
+  if (
+    !user.resetPasswordExpiresAt ||
+    user.resetPasswordExpiresAt < new Date()
+  ) {
+    throw new AppError(400, "Reset code has expired. Please request a new one.");
+  }
+
+  await verifyResetToken(user.id);
+
+  return {
+    message: "Reset code verified successfully.",
+  };
+}
 
 export async function resetPassword(
   code: string,
   password: string
 ) {
-  const user =
-    await findUserByVerifiedResetCode(code);
+  const user = await findUserByVerifiedResetCode(code);
 
   if (!user) {
-    throw new Error("Invalid reset code");
+    throw new AppError(400, "Invalid or unverified reset code.");
   }
 
-  const passwordHash =
-    await bcrypt.hash(password, 10);
+  const passwordHash = await bcrypt.hash(password, 10);
 
   await updatePassword(
     user.id,
@@ -146,31 +163,6 @@ export async function resetPassword(
   await clearResetToken(user.id);
 
   return {
-    message: "Password updated successfully",
+    message: "Password updated successfully.",
   };
 }
-
-
-
-
-export async function verifyResetCode(code: string) {
-  const user = await findUserByResetToken(code);
-
-  if (!user) {
-    throw new Error("Invalid reset code");
-  }
-
-  if (
-    !user.resetPasswordExpiresAt ||
-    user.resetPasswordExpiresAt < new Date()
-  ) {
-    throw new Error("Reset code expired");
-  }
-
-  await verifyResetToken(user.id);
-
-  return {
-    message: "Reset code verified",
-  };
-}
-
