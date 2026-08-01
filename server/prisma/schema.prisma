@@ -13,6 +13,17 @@ enum Role {
   AGENT
 }
 
+enum PriorityLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+
+
+
+
 model Organization {
   id   String @id @default(cuid())
   name String
@@ -20,9 +31,19 @@ model Organization {
 
   users User[]
  categories Category[]
+priorities Priority[]
+
+
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+
+
+
+
+
 
 model User {
   id String @id @default(cuid())
@@ -61,6 +82,27 @@ model Category {
   organizationId String
 
   organization Organization @relation(fields: [organizationId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, name])
+}
+model Priority {
+  id String @id @default(cuid())
+
+  name String
+
+  level PriorityLevel
+
+  color String
+
+  isActive Boolean @default(true)
+
+  organizationId String
+
+  organization Organization @relation(fields: [organizationId],references: [id])
 
   createdAt DateTime @default(now())
 
