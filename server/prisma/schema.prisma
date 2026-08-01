@@ -21,7 +21,11 @@ enum PriorityLevel {
 }
 
 
-
+enum AssetStatus {
+  ACTIVE
+  IN_MAINTENANCE
+  RETIRED
+}
 
 
 model Organization {
@@ -33,7 +37,7 @@ model Organization {
  categories Category[]
 priorities Priority[]
 
-
+assets Asset[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -43,7 +47,7 @@ priorities Priority[]
 
 
 
-
+//////////////////////////////// users ///////////////////////////////////////////
 
 model User {
   id String @id @default(cuid())
@@ -89,6 +93,10 @@ model Category {
 
   @@unique([organizationId, name])
 }
+
+
+
+//////////////////////////////// priorities ////////////////////////////////////////
 model Priority {
   id String @id @default(cuid())
 
@@ -109,4 +117,42 @@ model Priority {
   updatedAt DateTime @updatedAt
 
   @@unique([organizationId, name])
+}
+
+
+
+
+//////////////////////////////// assets ///////////////////////////////////////////
+model Asset {
+  id String @id @default(cuid())
+
+  name String
+
+  assetTag String
+
+  manufacturer String?
+
+  model String?
+
+  serialNumber String?
+
+  purchaseDate DateTime?
+
+  warrantyUntil DateTime?
+
+  location String?
+
+  notes String?
+
+  status AssetStatus @default(ACTIVE)
+
+  organizationId String
+
+  organization Organization @relation(fields: [organizationId],references: [id])
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, assetTag])
 }
