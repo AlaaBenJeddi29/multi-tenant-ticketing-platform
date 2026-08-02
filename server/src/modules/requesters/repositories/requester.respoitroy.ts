@@ -1,7 +1,7 @@
 import { prisma } from "../../../lib/prisma.js";
 import type { Prisma } from "../../../generated/prisma/client.js";
 
-const customerSelect = {
+const requesterSelect = {
   id: true,
   firstName: true,
   lastName: true,
@@ -13,74 +13,74 @@ const customerSelect = {
   organizationId: true,
   createdAt: true,
   updatedAt: true,
-} satisfies Prisma.CustomerSelect;
+} satisfies Prisma.RequesterSelect;
 
-export function findCustomers(
+export function findRequesters(
   organizationId: string
 ) {
-  return prisma.customer.findMany({
+  return prisma.requester.findMany({
     where: {
       organizationId,
     },
     orderBy: {
       createdAt: "desc",
     },
-    select: customerSelect,
+    select: requesterSelect,
   });
 }
 
-export function findCustomerById(
+export function findRequesterById(
   id: string,
   organizationId: string
 ) {
-  return prisma.customer.findFirst({
+  return prisma.requester.findFirst({
     where: {
       id,
       organizationId,
     },
-    select: customerSelect,
+    select: requesterSelect,
   });
 }
 
-export function findCustomerByEmail(
+export function findRequesterByEmail(
   email: string,
   organizationId: string
 ) {
-  return prisma.customer.findFirst({
+  return prisma.requester.findFirst({
     where: {
       email,
       organizationId,
     },
-    select: customerSelect,
+    select: requesterSelect,
   });
 }
 
-export function createCustomer(
-  data: Prisma.CustomerCreateInput
+export function createRequester(
+  data: Prisma.RequesterCreateInput
 ) {
-  return prisma.customer.create({
+  return prisma.requester.create({
     data,
-    select: customerSelect,
+    select: requesterSelect,
   });
 }
 
-export function updateCustomer(
+export function updateRequester(
   id: string,
-  data: Prisma.CustomerUpdateInput
+  data: Prisma.RequesterUpdateInput
 ) {
-  return prisma.customer.update({
+  return prisma.requester.update({
     where: {
       id,
     },
     data,
-    select: customerSelect,
+    select: requesterSelect,
   });
 }
 
-export function deleteCustomer(
+export function deleteRequester(
   id: string
 ) {
-  return prisma.customer.delete({
+  return prisma.requester.delete({
     where: {
       id,
     },

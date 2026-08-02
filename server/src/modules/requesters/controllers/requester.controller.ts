@@ -10,146 +10,146 @@ import type {
 } from "../../../middleware/auth.middleware.js";
 
 import {
-  createCustomerSchema,
-} from "../dto/create-customer.dto.js";
+  createRequesterSchema,
+} from "../dto/create-requester.dto.js";
 
 import {
-  updateCustomerSchema,
-} from "../dto/update-customer.dto.js";
+  updateRequesterSchema,
+} from "../dto/update-requester.dto.js";
 
-import * as customerService
-  from "../services/customer.service.js";
+import * as requesterService
+  from "../services/requester.service.js";
 
-export async function getCustomers(
+export async function getRequesters(
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) {
   try {
-    const customers =
-      await customerService.getCustomers(
+    const requesters =
+      await requesterService.getRequesters(
         req.user!.organizationId
       );
 
-    return res.json(customers);
+    return res.status(200).json(requesters);
   } catch (error) {
     next(error);
   }
 }
 
-export async function getCustomer(
+export async function getRequester(
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) {
   try {
-    const customer =
-      await customerService.getCustomerById(
+    const requester =
+      await requesterService.getRequesterById(
         requireParam(req.params.id, "id"),
         req.user!.organizationId
       );
 
-    return res.json(customer);
+    return res.status(200).json(requester);
   } catch (error) {
     next(error);
   }
 }
 
-export async function createCustomer(
+export async function createRequester(
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) {
   try {
     const body =
-      createCustomerSchema.parse(req.body);
+      createRequesterSchema.parse(req.body);
 
-    const customer =
-      await customerService.createNewCustomer(
+    const requester =
+      await requesterService.createNewRequester(
         body,
         req.user!.organizationId
       );
 
     return res
       .status(201)
-      .json(customer);
+      .json(requester);
   } catch (error) {
     next(error);
   }
 }
 
-export async function updateCustomer(
+export async function updateRequester(
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) {
   try {
     const body =
-      updateCustomerSchema.parse(req.body);
+      updateRequesterSchema.parse(req.body);
 
-    const customer =
-      await customerService.editCustomer(
+    const requester =
+      await requesterService.editRequester(
         requireParam(req.params.id, "id"),
         req.user!.organizationId,
         body
       );
 
-    return res.json(customer);
+    return res.status(200).json(requester);
   } catch (error) {
     next(error);
   }
 }
 
-export async function activateCustomer(
+export async function activateRequester(
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) {
   try {
-    const customer =
-      await customerService.activateCustomer(
+    const requester =
+      await requesterService.activateRequester(
         requireParam(req.params.id, "id"),
         req.user!.organizationId
       );
 
-    return res.json(customer);
+    return res.status(200).json(requester);
   } catch (error) {
     next(error);
   }
 }
 
-export async function deactivateCustomer(
+export async function deactivateRequester(
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) {
   try {
-    const customer =
-      await customerService.deactivateCustomer(
+    const requester =
+      await requesterService.deactivateRequester(
         requireParam(req.params.id, "id"),
         req.user!.organizationId
       );
 
-    return res.json(customer);
+    return res.status(200).json(requester);
   } catch (error) {
     next(error);
   }
 }
 
-export async function deleteCustomer(
+export async function deleteRequester(
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) {
   try {
-    await customerService.removeCustomer(
+    await requesterService.removeRequester(
       requireParam(req.params.id, "id"),
       req.user!.organizationId
     );
 
-    return res.json({
+    return res.status(200).json({
       message:
-        "Customer deleted successfully.",
+        "Requester deleted successfully.",
     });
   } catch (error) {
     next(error);

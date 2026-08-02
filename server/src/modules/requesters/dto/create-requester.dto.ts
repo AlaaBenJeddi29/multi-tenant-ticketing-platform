@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const createCustomerSchema = z.object({
+export const createRequesterSchema = z.object({
   firstName: z.string().min(2),
 
   lastName: z.string().min(2),
@@ -14,5 +14,5 @@ export const createCustomerSchema = z.object({
   notes: z.string().optional(),
 });
 
-export type CreateCustomerDto =
-  z.infer<typeof createCustomerSchema>;
+export type CreateRequesterDto =
+  z.infer<typeof createRequesterSchema>;

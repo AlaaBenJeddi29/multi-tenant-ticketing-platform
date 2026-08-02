@@ -14,7 +14,8 @@ import { errorHandler } from "./middleware/error.middleware.js";
 import { AppError } from "./lib/AppError.js";
 import prioritiesRoutes from "./modules/priorities/routes/priorities.routes.js";
 import assetsRoutes from "./modules/assets/routes/assets.routes.js";
-import customerRoutes from "./modules/customers/routes/customer.routes.js";
+import customerRoutes from "./modules/requesters/routes/requester.routes.js";
+import requesterRoutes from "./modules/requesters/routes/requester.routes.js";
 
 const app = express();
 
@@ -38,7 +39,7 @@ app.use("/api/organizations", organizationRoutes);
 app.use("/api/categories", categoriesRoutes);
 app.use("/api/priorities",prioritiesRoutes);
 app.use("/api/assets",assetsRoutes);
-app.use("/api/customers", customerRoutes);
+app.use("/api/requesters", requesterRoutes);
 // 4. Fallback 404 Handler for Undefined Routes
 app.use((req, res, next) => {
   next(new AppError(404, `Route ${req.originalUrl} not found.`));

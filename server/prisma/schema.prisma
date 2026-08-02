@@ -26,6 +26,21 @@ enum AssetStatus {
   RETIRED
 }
 
+
+enum TicketStatus {
+  NEW
+  IN_PROGRESS
+  WAITING_REQUESTER
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
 //////////////////////////////// organizations ///////////////////////////////////////
 
 model Organization {
@@ -37,8 +52,8 @@ model Organization {
   categories Category[]
   priorities Priority[]
   assets     Asset[]
-  customers  Customer[]
-
+  Requesters  Requester[]
+  tickets Ticket[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -58,7 +73,8 @@ model User {
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
-
+createdTickets Ticket[] @relation("CreatedTickets")
+assignedTickets Ticket[] @relation("AssignedTickets")
   isActive Boolean @default(true)
 
   lastLoginAt DateTime?
@@ -83,7 +99,7 @@ model Category {
   organizationId String
 
   organization Organization @relation(fields: [organizationId], references: [id])
-
+  tickets Ticket[]
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
@@ -141,7 +157,7 @@ model Asset {
   organizationId String
 
   organization Organization @relation(fields: [organizationId], references: [id])
-
+  tickets Ticket[]
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
@@ -149,8 +165,8 @@ model Asset {
   @@unique([organizationId, assetTag])
 }
 
-//////////////////////////////////////// customers ///////////////////////////////////////////
-model Customer {
+//////////////////////////////////////// requesters ///////////////////////////////////////////
+model Requester {
   id String @id @default(cuid())
 
   firstName String
@@ -169,9 +185,43 @@ model Customer {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  tickets Ticket[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([organizationId, email])
   @@index([organizationId])
+
+  @@unique([organizationId, email])
+}
+
+//////////////////////////////////////// tickets ///////////////////////////////////////////
+model Ticket {
+  id           String         @id @default(cuid())
+  ticketNumber Int            @unique
+  title        String
+  description  String
+  priority     TicketPriority @default(MEDIUM)
+  status       TicketStatus   @default(NEW)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  requesterId String
+  requester   Requester @relation(fields: [requesterId], references: [id])
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  assetId String?
+  asset   Asset?  @relation(fields: [assetId], references: [id])
+
+  createdById String
+  createdBy   User   @relation("CreatedTickets", fields: [createdById], references: [id])
+
+  assignedToId String?
+  assignedTo   User?   @relation("AssignedTickets", fields: [assignedToId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
