@@ -20,32 +20,28 @@ enum PriorityLevel {
   CRITICAL
 }
 
-
 enum AssetStatus {
   ACTIVE
   IN_MAINTENANCE
   RETIRED
 }
 
+//////////////////////////////// organizations ///////////////////////////////////////
 
 model Organization {
   id   String @id @default(cuid())
   name String
   slug String @unique
 
-  users User[]
- categories Category[]
-priorities Priority[]
-
-assets Asset[]
+  users      User[]
+  categories Category[]
+  priorities Priority[]
+  assets     Asset[]
+  customers  Customer[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
-
-
-
 
 //////////////////////////////// users ///////////////////////////////////////////
 
@@ -63,7 +59,7 @@ model User {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
- isActive      Boolean   @default(true)
+  isActive Boolean @default(true)
 
   lastLoginAt DateTime?
 
@@ -74,6 +70,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 model Category {
   id String @id @default(cuid())
 
@@ -94,8 +91,6 @@ model Category {
   @@unique([organizationId, name])
 }
 
-
-
 //////////////////////////////// priorities ////////////////////////////////////////
 model Priority {
   id String @id @default(cuid())
@@ -110,7 +105,7 @@ model Priority {
 
   organizationId String
 
-  organization Organization @relation(fields: [organizationId],references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
 
   createdAt DateTime @default(now())
 
@@ -118,9 +113,6 @@ model Priority {
 
   @@unique([organizationId, name])
 }
-
-
-
 
 //////////////////////////////// assets ///////////////////////////////////////////
 model Asset {
@@ -148,11 +140,38 @@ model Asset {
 
   organizationId String
 
-  organization Organization @relation(fields: [organizationId],references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
 
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
 
   @@unique([organizationId, assetTag])
+}
+
+//////////////////////////////////////// customers ///////////////////////////////////////////
+model Customer {
+  id String @id @default(cuid())
+
+  firstName String
+  lastName  String
+
+  email String
+  phone String?
+
+  company String?
+
+  notes String?
+
+  isActive Boolean @default(true)
+
+  organizationId String
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, email])
+  @@index([organizationId])
 }
