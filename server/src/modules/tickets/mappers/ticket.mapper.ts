@@ -1,74 +1,61 @@
-function formatTicketNumber(
-  number: number
-) {
-  return `TKT-${number
-    .toString()
-    .padStart(6, "0")}`;
-}
+import type {
+  Prisma,
+} from "../../../generated/prisma/client.js";
+
+/**
+ * Matches exactly what ticket.repository.ts returns.
+ */
+export type TicketWithRelations =
+  Prisma.TicketGetPayload<{
+    select: {
+      id: true;
+      ticketNumber: true;
+      title: true;
+      description: true;
+      status: true;
+      createdAt: true;
+      updatedAt: true;
+
+      priority: true;
+      category: true;
+      requester: true;
+      asset: true;
+
+      assignedTo: {
+        select: {
+          id: true;
+          firstName: true;
+          lastName: true;
+          email: true;
+          role: true;
+        };
+      };
+    };
+  }>;
 
 export function toTicketResponse(
-  ticket: any
+  ticket: TicketWithRelations
 ) {
   return {
     id: ticket.id,
 
-    number: formatTicketNumber(
-      ticket.ticketNumber
-    ),
+    ticketNumber: ticket.ticketNumber,
 
     title: ticket.title,
 
     description: ticket.description,
 
-    priority: ticket.priority,
-
     status: ticket.status,
 
-    requester: ticket.requester
-      ? {
-          id: ticket.requester.id,
-          firstName:
-            ticket.requester.firstName,
-          lastName:
-            ticket.requester.lastName,
-          email:
-            ticket.requester.email,
-        }
-      : null,
+    priority: ticket.priority,
 
-    category: ticket.category
-      ? {
-          id: ticket.category.id,
-          name: ticket.category.name,
-        }
-      : null,
+    category: ticket.category,
 
-    asset: ticket.asset
-      ? {
-          id: ticket.asset.id,
-          name: ticket.asset.name,
-          assetTag:
-            ticket.asset.assetTag,
-        }
-      : null,
+    requester: ticket.requester,
 
-    assignedTo: ticket.assignedTo
-      ? {
-          id: ticket.assignedTo.id,
-          firstName:
-            ticket.assignedTo.firstName,
-          lastName:
-            ticket.assignedTo.lastName,
-        }
-      : null,
+    asset: ticket.asset,
 
-    createdBy: {
-      id: ticket.createdBy.id,
-      firstName:
-        ticket.createdBy.firstName,
-      lastName:
-        ticket.createdBy.lastName,
-    },
+    assignedTo: ticket.assignedTo,
 
     createdAt: ticket.createdAt,
 
@@ -77,9 +64,7 @@ export function toTicketResponse(
 }
 
 export function toTicketsResponse(
-  tickets: any[]
+  tickets: TicketWithRelations[]
 ) {
-  return tickets.map(
-    toTicketResponse
-  );
+  return tickets.map(toTicketResponse);
 }

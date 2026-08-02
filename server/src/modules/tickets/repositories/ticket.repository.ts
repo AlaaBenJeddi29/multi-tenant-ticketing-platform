@@ -1,5 +1,42 @@
 import { prisma } from "../../../lib/prisma.js";
-import type { Prisma } from "../../../generated/prisma/client.js";
+
+import type {
+  Prisma,
+} from "../../../generated/prisma/client.js";
+
+const ticketSelect = {
+  id: true,
+
+  ticketNumber: true,
+
+  title: true,
+
+  description: true,
+
+  status: true,
+
+  createdAt: true,
+
+  updatedAt: true,
+
+  priority: true,
+
+  category: true,
+
+  requester: true,
+
+  asset: true,
+
+  assignedTo: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      role: true,
+    },
+  },
+} satisfies Prisma.TicketSelect;
 
 export function findTickets(
   organizationId: string
@@ -9,17 +46,11 @@ export function findTickets(
       organizationId,
     },
 
-    include: {
-      category: true,
-      requester: true,
-      asset: true,
-      assignedTo: true,
-      createdBy: true,
-    },
-
     orderBy: {
       createdAt: "desc",
     },
+
+    select: ticketSelect,
   });
 }
 
@@ -33,75 +64,7 @@ export function findTicketById(
       organizationId,
     },
 
-    include: {
-      category: true,
-      requester: true,
-      asset: true,
-      assignedTo: true,
-      createdBy: true,
-    },
-  });
-}
-
-export async function findNextTicketNumber() {
-  const ticket = await prisma.ticket.findFirst({
-    orderBy: {
-      ticketNumber: "desc",
-    },
-
-    select: {
-      ticketNumber: true,
-    },
-  });
-
-  return (ticket?.ticketNumber ?? 0) + 1;
-}
-
-export function findRequester(
-  requesterId: string,
-  organizationId: string
-) {
-  return prisma.requester.findFirst({
-    where: {
-      id: requesterId,
-      organizationId,
-    },
-  });
-}
-
-export function findCategory(
-  categoryId: string,
-  organizationId: string
-) {
-  return prisma.category.findFirst({
-    where: {
-      id: categoryId,
-      organizationId,
-    },
-  });
-}
-
-export function findAsset(
-  assetId: string,
-  organizationId: string
-) {
-  return prisma.asset.findFirst({
-    where: {
-      id: assetId,
-      organizationId,
-    },
-  });
-}
-
-export function findOrganizationUser(
-  userId: string,
-  organizationId: string
-) {
-  return prisma.user.findFirst({
-    where: {
-      id: userId,
-      organizationId,
-    },
+    select: ticketSelect,
   });
 }
 
@@ -111,13 +74,7 @@ export function createTicket(
   return prisma.ticket.create({
     data,
 
-    include: {
-      category: true,
-      requester: true,
-      asset: true,
-      assignedTo: true,
-      createdBy: true,
-    },
+    select: ticketSelect,
   });
 }
 
@@ -132,13 +89,7 @@ export function updateTicket(
 
     data,
 
-    include: {
-      category: true,
-      requester: true,
-      asset: true,
-      assignedTo: true,
-      createdBy: true,
-    },
+    select: ticketSelect,
   });
 }
 
@@ -148,6 +99,28 @@ export function deleteTicket(
   return prisma.ticket.delete({
     where: {
       id,
+    },
+
+    select: {
+      id: true,
+    },
+  });
+}
+
+export function getLastTicketNumber(
+  organizationId: string
+) {
+  return prisma.ticket.findFirst({
+    where: {
+      organizationId,
+    },
+
+    orderBy: {
+      ticketNumber: "desc",
+    },
+
+    select: {
+      ticketNumber: true,
     },
   });
 }

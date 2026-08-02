@@ -1,12 +1,15 @@
 generator client {
+
   provider = "prisma-client"
+
   output   = "../src/generated/prisma"
-}
 
+}
 datasource db {
-  provider = "postgresql"
-}
 
+  provider = "postgresql"
+
+}
 enum Role {
   SUPER_ADMIN
   ORG_ADMIN
@@ -26,7 +29,6 @@ enum AssetStatus {
   RETIRED
 }
 
-
 enum TicketStatus {
   NEW
   IN_PROGRESS
@@ -35,12 +37,6 @@ enum TicketStatus {
   CLOSED
 }
 
-enum TicketPriority {
-  LOW
-  MEDIUM
-  HIGH
-  URGENT
-}
 //////////////////////////////// organizations ///////////////////////////////////////
 
 model Organization {
@@ -52,8 +48,9 @@ model Organization {
   categories Category[]
   priorities Priority[]
   assets     Asset[]
-  Requesters  Requester[]
-  tickets Ticket[]
+  requesters Requester[]
+  tickets    Ticket[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -73,8 +70,10 @@ model User {
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
-createdTickets Ticket[] @relation("CreatedTickets")
-assignedTickets Ticket[] @relation("AssignedTickets")
+
+  createdTickets  Ticket[] @relation("CreatedTickets")
+  assignedTickets Ticket[] @relation("AssignedTickets")
+
   isActive Boolean @default(true)
 
   lastLoginAt DateTime?
@@ -87,103 +86,89 @@ assignedTickets Ticket[] @relation("AssignedTickets")
   updatedAt DateTime @updatedAt
 }
 
+//////////////////////////////// categories ////////////////////////////////////////
+
 model Category {
-  id String @id @default(cuid())
-
-  name String
-
+  id          String  @id @default(cuid())
+  name        String
   description String?
 
   isActive Boolean @default(true)
 
   organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
 
-  organization Organization @relation(fields: [organizationId], references: [id])
   tickets Ticket[]
-  createdAt DateTime @default(now())
 
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([organizationId, name])
 }
 
 //////////////////////////////// priorities ////////////////////////////////////////
+
 model Priority {
-  id String @id @default(cuid())
-
-  name String
-
+  id    String        @id @default(cuid())
+  name  String
   level PriorityLevel
-
   color String
 
   isActive Boolean @default(true)
 
   organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
 
-  organization Organization @relation(fields: [organizationId], references: [id])
+  tickets Ticket[]
 
   createdAt DateTime @default(now())
-
   updatedAt DateTime @updatedAt
 
   @@unique([organizationId, name])
 }
 
 //////////////////////////////// assets ///////////////////////////////////////////
+
 model Asset {
-  id String @id @default(cuid())
-
-  name String
-
-  assetTag String
-
+  id           String    @id @default(cuid())
+  name         String
+  assetTag     String
   manufacturer String?
-
-  model String?
-
+  model        String?
   serialNumber String?
-
   purchaseDate DateTime?
-
   warrantyUntil DateTime?
-
-  location String?
-
-  notes String?
+  location     String?
+  notes        String?
 
   status AssetStatus @default(ACTIVE)
 
   organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
 
-  organization Organization @relation(fields: [organizationId], references: [id])
   tickets Ticket[]
-  createdAt DateTime @default(now())
 
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([organizationId, assetTag])
 }
 
 //////////////////////////////////////// requesters ///////////////////////////////////////////
-model Requester {
-  id String @id @default(cuid())
 
+model Requester {
+  id        String  @id @default(cuid())
   firstName String
   lastName  String
-
-  email String
-  phone String?
-
-  company String?
-
-  notes String?
+  email     String
+  phone     String?
+  company   String?
+  notes     String?
 
   isActive Boolean @default(true)
 
   organizationId String
-
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   tickets Ticket[]
 
@@ -191,18 +176,20 @@ model Requester {
   updatedAt DateTime @updatedAt
 
   @@index([organizationId])
-
   @@unique([organizationId, email])
 }
 
 //////////////////////////////////////// tickets ///////////////////////////////////////////
+
 model Ticket {
-  id           String         @id @default(cuid())
-  ticketNumber Int            @unique
+  id           String       @id @default(cuid())
+  ticketNumber Int          @unique
   title        String
-  description  String
-  priority     TicketPriority @default(MEDIUM)
-  status       TicketStatus   @default(NEW)
+  description  String?
+  status       TicketStatus @default(NEW)
+
+  priorityId String
+  priority   Priority @relation(fields: [priorityId], references: [id])
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])

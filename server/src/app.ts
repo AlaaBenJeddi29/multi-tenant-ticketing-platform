@@ -16,6 +16,7 @@ import prioritiesRoutes from "./modules/priorities/routes/priorities.routes.js";
 import assetsRoutes from "./modules/assets/routes/assets.routes.js";
 import customerRoutes from "./modules/requesters/routes/requester.routes.js";
 import requesterRoutes from "./modules/requesters/routes/requester.routes.js";
+import ticketRoutes from "./modules/tickets/routes/ticket.routes.js";
 
 const app = express();
 
@@ -40,6 +41,10 @@ app.use("/api/categories", categoriesRoutes);
 app.use("/api/priorities",prioritiesRoutes);
 app.use("/api/assets",assetsRoutes);
 app.use("/api/requesters", requesterRoutes);
+app.use("/api/tickets", ticketRoutes);
+
+
+
 // 4. Fallback 404 Handler for Undefined Routes
 app.use((req, res, next) => {
   next(new AppError(404, `Route ${req.originalUrl} not found.`));

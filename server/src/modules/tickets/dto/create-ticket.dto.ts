@@ -1,27 +1,20 @@
 import { z } from "zod";
 
-export const createTicketSchema =
-  z.object({
-    title: z.string().min(5),
+export const createTicketSchema = z.object({
+  title: z.string().min(3).max(150),
 
-    description: z.string().min(10),
+  description: z.string().optional(),
 
-    requesterId: z.string(),
+  priorityId: z.string().cuid(),
 
-    categoryId: z.string(),
+  categoryId: z.string().cuid(),
 
-    assetId:
-      z.string().optional(),
+  requesterId: z.string().cuid(),
 
-    priority: z.enum([
-      "LOW",
-      "MEDIUM",
-      "HIGH",
-      "URGENT",
-    ]),
-  });
+  assetId: z.string().cuid().optional(),
+
+  assignedToId: z.string().cuid().optional(),
+});
 
 export type CreateTicketDto =
-  z.infer<
-    typeof createTicketSchema
-  >;
+  z.infer<typeof createTicketSchema>;

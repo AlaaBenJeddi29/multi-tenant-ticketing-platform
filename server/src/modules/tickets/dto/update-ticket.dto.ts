@@ -1,33 +1,9 @@
 import { z } from "zod";
 
+import { createTicketSchema } from "./create-ticket.dto.js";
+
 export const updateTicketSchema =
-  z.object({
-    title:
-      z.string().min(5).optional(),
-
-    description:
-      z
-        .string()
-        .min(10)
-        .optional(),
-
-    categoryId:
-      z.string().optional(),
-
-    assetId:
-      z.string().nullable().optional(),
-
-    priority: z
-      .enum([
-        "LOW",
-        "MEDIUM",
-        "HIGH",
-        "URGENT",
-      ])
-      .optional(),
-  });
+  createTicketSchema.partial();
 
 export type UpdateTicketDto =
-  z.infer<
-    typeof updateTicketSchema
-  >;
+  z.infer<typeof updateTicketSchema>;
