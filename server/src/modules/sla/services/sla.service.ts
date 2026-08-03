@@ -55,19 +55,18 @@ export async function createNewSla(
   dto: CreateSlaDto,
   organizationId: string
 ) {
-  const existing =
-    await findSlaByPriority(
-      dto.priorityId,
-      organizationId
-    );
+ const existing =
+  await findSlaByPriority(
+    organizationId,
+    dto.priorityId
+  );
 
-  if (existing) {
-    throw new AppError(
-      409,
-      "An SLA already exists for this priority."
-    );
-  }
-
+if (existing) {
+  throw new AppError(
+    409,
+    "An SLA already exists for this priority."
+  );
+}
   const sla =
     await createSla({
       name: dto.name,
@@ -107,23 +106,23 @@ export async function editSla(
     organizationId
   );
 
-  if (dto.priorityId) {
-    const existing =
-      await findSlaByPriority(
-        dto.priorityId,
-        organizationId
-      );
+if (dto.priorityId) {
+  const existing =
+    await findSlaByPriority(
+      organizationId,
+      dto.priorityId
+    );
 
-    if (
-      existing &&
-      existing.id !== id
-    ) {
-      throw new AppError(
-        409,
-        "An SLA already exists for this priority."
-      );
-    }
+  if (
+    existing &&
+    existing.id !== id
+  ) {
+    throw new AppError(
+      409,
+      "An SLA already exists for this priority."
+    );
   }
+}
 
   const data: Parameters<
     typeof updateSla

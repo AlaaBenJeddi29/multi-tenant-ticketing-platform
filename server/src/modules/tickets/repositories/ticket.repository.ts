@@ -3,7 +3,6 @@ import { prisma } from "../../../lib/prisma.js";
 import type {
   Prisma,
 } from "../../../generated/prisma/client.js";
-
 const ticketSelect = {
   id: true,
 
@@ -14,6 +13,18 @@ const ticketSelect = {
   description: true,
 
   status: true,
+
+  responseDueAt: true,
+
+  resolutionDueAt: true,
+
+  firstRespondedAt: true,
+
+  resolvedAt: true,
+
+  responseBreached: true,
+
+  resolutionBreached: true,
 
   createdAt: true,
 

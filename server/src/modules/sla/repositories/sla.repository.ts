@@ -56,16 +56,14 @@ export function findSlaById(
 }
 
 export function findSlaByPriority(
-  priorityId: string,
-  organizationId: string
+  organizationId: string,
+  priorityId: string
 ) {
   return prisma.sla.findFirst({
     where: {
-      priorityId,
       organizationId,
+      priorityId,
     },
-
-    select: slaSelect,
   });
 }
 
@@ -104,6 +102,24 @@ export function deleteSla(
 
     select: {
       id: true,
+    },
+  });
+}
+export function findActiveSlaByPriority(
+  priorityId: string,
+  organizationId: string
+) {
+  return prisma.sla.findFirst({
+    where: {
+      priorityId,
+      organizationId,
+      isActive: true,
+    },
+
+    select: {
+      responseTimeMinutes: true,
+
+      resolutionTimeMinutes: true,
     },
   });
 }

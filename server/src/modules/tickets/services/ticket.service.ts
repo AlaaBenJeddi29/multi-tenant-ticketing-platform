@@ -1,5 +1,7 @@
 import { AppError } from "../../../lib/AppError.js";
-
+import {
+  findActiveSlaByPriority,
+} from "../../sla/repositories/sla.repository.js";
 import type {
   Prisma,
 } from "../../../generated/prisma/client.js";
@@ -76,13 +78,49 @@ export async function createNewTicket(
   const nextTicketNumber =
     (lastTicket?.ticketNumber ?? 0) + 1;
 
+  const sla =
+    await findActiveSlaByPriority(
+      dto.priorityId,
+      organizationId
+    );
+
+  if (!sla) {
+    throw new AppError(
+      400,
+      "No active SLA found for the selected priority."
+    );
+  }
+
+  const now = new Date();
+
+  const responseDueAt = new Date(
+    now.getTime() +
+      sla.responseTimeMinutes *
+        60 *
+        1000
+  );
+
+  const resolutionDueAt =
+    new Date(
+      now.getTime() +
+        sla.resolutionTimeMinutes *
+          60 *
+          1000
+    );
+
   const ticket =
     await createTicket({
-      ticketNumber: nextTicketNumber,
+      ticketNumber:
+        nextTicketNumber,
 
       title: dto.title,
 
-      description: dto.description,
+      description:
+        dto.description,
+
+      responseDueAt,
+
+      resolutionDueAt,
 
       organization: {
         connect: {
@@ -240,15 +278,54 @@ export async function updateStatus(
   organizationId: string,
   dto: UpdateTicketStatusDto
 ) {
-  await getTicketById(
-    id,
-    organizationId
-  );
+  const existing =
+    await findTicketById(
+      id,
+      organizationId
+    );
+
+  if (!existing) {
+    throw new AppError(
+      404,
+      "Ticket not found."
+    );
+  }
+
+  const now = new Date();
+
+  const data: Prisma.TicketUpdateInput = {
+    status: dto.status,
+  };
+
+  if (
+    dto.status === "IN_PROGRESS"
+  ) {
+    data.firstRespondedAt = now;
+
+    data.responseBreached =
+      existing.responseDueAt
+        ? now >
+          existing.responseDueAt
+        : false;
+  }
+
+  if (
+    dto.status === "RESOLVED"
+  ) {
+    data.resolvedAt = now;
+
+    data.resolutionBreached =
+      existing.resolutionDueAt
+        ? now >
+          existing.resolutionDueAt
+        : false;
+  }
 
   const ticket =
-    await updateTicket(id, {
-      status: dto.status,
-    });
+    await updateTicket(
+      id,
+      data
+    );
 
   return toTicketResponse(ticket);
 }
