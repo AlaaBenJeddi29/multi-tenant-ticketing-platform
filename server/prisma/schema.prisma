@@ -72,7 +72,7 @@ model User {
 
   createdTickets  Ticket[] @relation("CreatedTickets")
   assignedTickets Ticket[] @relation("AssignedTickets")
-
+  comments TicketComment[]
   isActive Boolean @default(true)
 
   lastLoginAt DateTime?
@@ -208,6 +208,7 @@ model Ticket {
 
   assignedToId String?
   assignedTo   User?   @relation("AssignedTickets", fields: [assignedToId], references: [id])
+  comments TicketComment[]
 
   responseDueAt DateTime
 
@@ -246,4 +247,21 @@ model Sla {
   updatedAt DateTime @updatedAt
 
   @@index([organizationId])
+}
+
+model TicketComment {
+  id String @id @default(cuid())
+
+  content String
+
+  ticketId String
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  authorId String
+  author User @relation(fields: [authorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ticketId])
 }
