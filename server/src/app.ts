@@ -17,6 +17,7 @@ import assetsRoutes from "./modules/assets/routes/assets.routes.js";
 import customerRoutes from "./modules/requesters/routes/requester.routes.js";
 import requesterRoutes from "./modules/requesters/routes/requester.routes.js";
 import ticketRoutes from "./modules/tickets/routes/ticket.routes.js";
+import slaRoutes from "./modules/sla/routes/sla.routes.js";
 
 const app = express();
 
@@ -42,6 +43,7 @@ app.use("/api/priorities",prioritiesRoutes);
 app.use("/api/assets",assetsRoutes);
 app.use("/api/requesters", requesterRoutes);
 app.use("/api/tickets", ticketRoutes);
+app.use("/api/slas", slaRoutes);
 
 
 
