@@ -37,7 +37,29 @@ const ticketSelect = {
   requester: true,
 
   asset: true,
+comments: {
+  orderBy: {
+    createdAt: "asc",
+  },
 
+  select: {
+    id: true,
+
+    content: true,
+
+    createdAt: true,
+
+    author: {
+      select: {
+        id: true,
+
+        firstName: true,
+
+        lastName: true,
+      },
+    },
+  },
+},
   assignedTo: {
     select: {
       id: true,

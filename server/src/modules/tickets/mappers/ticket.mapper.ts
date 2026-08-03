@@ -42,12 +42,36 @@ export type TicketWithRelations =
 
       asset: true;
 
+      comments: {
+        select: {
+          id: true;
+
+          content: true;
+
+          createdAt: true;
+
+          author: {
+            select: {
+              id: true;
+
+              firstName: true;
+
+              lastName: true;
+            };
+          };
+        };
+      };
+
       assignedTo: {
         select: {
           id: true;
+
           firstName: true;
+
           lastName: true;
+
           email: true;
+
           role: true;
         };
       };
@@ -60,13 +84,11 @@ export function toTicketResponse(
   return {
     id: ticket.id,
 
-    ticketNumber:
-      ticket.ticketNumber,
+    ticketNumber: ticket.ticketNumber,
 
     title: ticket.title,
 
-    description:
-      ticket.description,
+    description: ticket.description,
 
     status: ticket.status,
 
@@ -78,32 +100,25 @@ export function toTicketResponse(
 
     asset: ticket.asset,
 
-    assignedTo:
-      ticket.assignedTo,
+    assignedTo: ticket.assignedTo,
 
-    responseDueAt:
-      ticket.responseDueAt,
+    comments: ticket.comments,
 
-    resolutionDueAt:
-      ticket.resolutionDueAt,
+    responseDueAt: ticket.responseDueAt,
 
-    firstRespondedAt:
-      ticket.firstRespondedAt,
+    resolutionDueAt: ticket.resolutionDueAt,
 
-    resolvedAt:
-      ticket.resolvedAt,
+    firstRespondedAt: ticket.firstRespondedAt,
 
-    responseBreached:
-      ticket.responseBreached,
+    resolvedAt: ticket.resolvedAt,
 
-    resolutionBreached:
-      ticket.resolutionBreached,
+    responseBreached: ticket.responseBreached,
 
-    createdAt:
-      ticket.createdAt,
+    resolutionBreached: ticket.resolutionBreached,
 
-    updatedAt:
-      ticket.updatedAt,
+    createdAt: ticket.createdAt,
+
+    updatedAt: ticket.updatedAt,
   };
 }
 
