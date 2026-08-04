@@ -1,7 +1,5 @@
 import { AppError } from "../../../lib/AppError.js";
-import {
-  findActiveSlaByPriority,
-} from "../../sla/repositories/sla.repository.js";
+
 import type {
   Prisma,
 } from "../../../generated/prisma/client.js";
@@ -23,6 +21,15 @@ import type {
 } from "../dto/update-ticket-status.dto.js";
 
 import {
+  findActiveSlaByPriority,
+} from "../../sla/repositories/sla.repository.js";
+
+import {
+  calculateSlaDeadlines,
+  processResolution,
+} from "../../automation/services/automation-runtime.service.js";
+
+import {
   createTicket,
   deleteTicket,
   findTicketById,
@@ -40,9 +47,13 @@ export async function getTickets(
   organizationId: string
 ) {
   const tickets =
-    await findTickets(organizationId);
+    await findTickets(
+      organizationId
+    );
 
-  return toTicketsResponse(tickets);
+  return toTicketsResponse(
+    tickets
+  );
 }
 
 export async function getTicketById(
@@ -62,7 +73,9 @@ export async function getTicketById(
     );
   }
 
-  return toTicketResponse(ticket);
+  return toTicketResponse(
+    ticket
+  );
 }
 
 export async function createNewTicket(
@@ -76,7 +89,8 @@ export async function createNewTicket(
     );
 
   const nextTicketNumber =
-    (lastTicket?.ticketNumber ?? 0) + 1;
+    (lastTicket?.ticketNumber ?? 0) +
+    1;
 
   const sla =
     await findActiveSlaByPriority(
@@ -91,22 +105,13 @@ export async function createNewTicket(
     );
   }
 
-  const now = new Date();
-
-  const responseDueAt = new Date(
-    now.getTime() +
-      sla.responseTimeMinutes *
-        60 *
-        1000
+  const {
+    responseDueAt,
+    resolutionDueAt,
+  } = calculateSlaDeadlines(
+    sla.responseTimeMinutes,
+    sla.resolutionTimeMinutes
   );
-
-  const resolutionDueAt =
-    new Date(
-      now.getTime() +
-        sla.resolutionTimeMinutes *
-          60 *
-          1000
-    );
 
   const ticket =
     await createTicket({
@@ -169,7 +174,9 @@ export async function createNewTicket(
       }),
     });
 
-  return toTicketResponse(ticket);
+  return toTicketResponse(
+    ticket
+  );
 }
 
 export async function editTicket(
@@ -182,18 +189,25 @@ export async function editTicket(
     organizationId
   );
 
-  const data: Prisma.TicketUpdateInput = {};
+  const data: Prisma.TicketUpdateInput =
+    {};
 
   if (dto.title !== undefined) {
     data.title = dto.title;
   }
 
-  if (dto.description !== undefined) {
+  if (
+    dto.description !==
+    undefined
+  ) {
     data.description =
       dto.description;
   }
 
-  if (dto.priorityId !== undefined) {
+  if (
+    dto.priorityId !==
+    undefined
+  ) {
     data.priority = {
       connect: {
         id: dto.priorityId,
@@ -201,7 +215,10 @@ export async function editTicket(
     };
   }
 
-  if (dto.categoryId !== undefined) {
+  if (
+    dto.categoryId !==
+    undefined
+  ) {
     data.category = {
       connect: {
         id: dto.categoryId,
@@ -209,7 +226,10 @@ export async function editTicket(
     };
   }
 
-  if (dto.requesterId !== undefined) {
+  if (
+    dto.requesterId !==
+    undefined
+  ) {
     data.requester = {
       connect: {
         id: dto.requesterId,
@@ -217,7 +237,10 @@ export async function editTicket(
     };
   }
 
-  if (dto.assetId !== undefined) {
+  if (
+    dto.assetId !==
+    undefined
+  ) {
     data.asset = dto.assetId
       ? {
           connect: {
@@ -229,7 +252,10 @@ export async function editTicket(
         };
   }
 
-  if (dto.assignedToId !== undefined) {
+  if (
+    dto.assignedToId !==
+    undefined
+  ) {
     data.assignedTo =
       dto.assignedToId
         ? {
@@ -248,7 +274,9 @@ export async function editTicket(
       data
     );
 
-  return toTicketResponse(ticket);
+  return toTicketResponse(
+    ticket
+  );
 }
 
 export async function assignTicket(
@@ -270,7 +298,9 @@ export async function assignTicket(
       },
     });
 
-  return toTicketResponse(ticket);
+  return toTicketResponse(
+    ticket
+  );
 }
 
 export async function updateStatus(
@@ -291,43 +321,37 @@ export async function updateStatus(
     );
   }
 
-  const now = new Date();
-
-  const data: Prisma.TicketUpdateInput = {
+  await updateTicket(id, {
     status: dto.status,
-  };
+  });
 
   if (
-    dto.status === "IN_PROGRESS"
+    dto.status ===
+    "RESOLVED"
   ) {
-    data.firstRespondedAt = now;
-
-    data.responseBreached =
-      existing.responseDueAt
-        ? now >
-          existing.responseDueAt
-        : false;
+    await processResolution(
+      existing.id,
+      existing.resolutionDueAt,
+      existing.resolvedAt
+    );
   }
 
-  if (
-    dto.status === "RESOLVED"
-  ) {
-    data.resolvedAt = now;
-
-    data.resolutionBreached =
-      existing.resolutionDueAt
-        ? now >
-          existing.resolutionDueAt
-        : false;
-  }
-
-  const ticket =
-    await updateTicket(
+  const updated =
+    await findTicketById(
       id,
-      data
+      organizationId
     );
 
-  return toTicketResponse(ticket);
+  if (!updated) {
+    throw new AppError(
+      404,
+      "Ticket not found."
+    );
+  }
+
+  return toTicketResponse(
+    updated
+  );
 }
 
 export async function removeTicket(
@@ -339,5 +363,7 @@ export async function removeTicket(
     organizationId
   );
 
-  await deleteTicket(id);
+  await deleteTicket(
+    id
+  );
 }

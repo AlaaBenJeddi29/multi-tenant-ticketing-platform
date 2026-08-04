@@ -34,6 +34,32 @@ enum TicketStatus {
   RESOLVED
   CLOSED
 }
+enum AutomationTrigger {
+  TICKET_CREATED
+  TICKET_UPDATED
+  COMMENT_CREATED
+  STATUS_CHANGED
+  SLA_BREACHED
+}
+
+enum AutomationCondition {
+  ALWAYS
+  PRIORITY_IS
+  STATUS_IS
+  CATEGORY_IS
+  ASSIGNED_AGENT_IS
+  REQUESTER_IS
+  RESPONSE_BREACHED
+  RESOLUTION_BREACHED
+}
+
+enum AutomationAction {
+  ASSIGN_AGENT
+  CHANGE_PRIORITY
+  CHANGE_STATUS
+  ADD_INTERNAL_COMMENT
+  SEND_NOTIFICATION
+}
 
 //////////////////////////////// organizations ///////////////////////////////////////
 
@@ -49,7 +75,7 @@ model Organization {
   requesters Requester[]
   tickets    Ticket[]
   slas       Sla[]
-
+  automationRules  AutomationRule[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -264,4 +290,32 @@ model TicketComment {
   updatedAt DateTime @updatedAt
 
   @@index([ticketId])
+}
+model AutomationRule {
+  id String @id @default(cuid())
+
+  name String
+
+  enabled Boolean @default(true)
+
+  trigger AutomationTrigger
+
+  condition AutomationCondition
+
+  conditionValue String?
+
+  action AutomationAction
+
+  actionValue String?
+
+  organizationId String
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+
+  @@index([trigger])
 }

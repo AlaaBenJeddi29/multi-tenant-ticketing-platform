@@ -21,6 +21,10 @@ import {
 } from "../../tickets/repositories/ticket.repository.js";
 
 import {
+  processFirstResponse,
+} from "../../automation/services/automation-runtime.service.js";
+
+import {
   toCommentResponse,
   toCommentsResponse,
 } from "../mappers/comment.mapper.js";
@@ -85,6 +89,12 @@ export async function createNewComment(
         },
       },
     });
+
+  await processFirstResponse(
+    ticket.id,
+    ticket.responseDueAt,
+    ticket.firstRespondedAt
+  );
 
   return toCommentResponse(
     comment

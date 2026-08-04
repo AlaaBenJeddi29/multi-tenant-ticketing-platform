@@ -3,7 +3,8 @@ import { prisma } from "../../../lib/prisma.js";
 import type {
   Prisma,
 } from "../../../generated/prisma/client.js";
-const ticketSelect = {
+
+export const ticketSelect = {
   id: true,
 
   ticketNumber: true,
@@ -37,29 +38,7 @@ const ticketSelect = {
   requester: true,
 
   asset: true,
-comments: {
-  orderBy: {
-    createdAt: "asc",
-  },
 
-  select: {
-    id: true,
-
-    content: true,
-
-    createdAt: true,
-
-    author: {
-      select: {
-        id: true,
-
-        firstName: true,
-
-        lastName: true,
-      },
-    },
-  },
-},
   assignedTo: {
     select: {
       id: true,
@@ -67,6 +46,28 @@ comments: {
       lastName: true,
       email: true,
       role: true,
+    },
+  },
+
+  comments: {
+    orderBy: {
+      createdAt: "asc",
+    },
+
+    select: {
+      id: true,
+
+      content: true,
+
+      createdAt: true,
+
+      author: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+        },
+      },
     },
   },
 } satisfies Prisma.TicketSelect;

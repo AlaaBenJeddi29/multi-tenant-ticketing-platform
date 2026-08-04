@@ -4,13 +4,13 @@ import { authenticate } from "../../../middleware/auth.middleware.js";
 import { authorize } from "../../../middleware/authorize.middleware.js";
 
 import {
-  activateCustomer,
-  createCustomer,
-  deactivateCustomer,
-  deleteCustomer,
-  getCustomer,
-  getCustomers,
-  updateCustomer,
+  activateRequester,
+  createRequester,
+  deactivateRequester,
+  deleteRequester,
+  getRequester,
+  getRequesters,
+  updateRequester,
 } from "../controllers/requester.controller.js";
 
 const router = Router();
@@ -20,43 +20,43 @@ router.use(authenticate);
 router.get(
   "/",
   authorize("ORG_ADMIN", "AGENT"),
-  getCustomers
+  getRequesters
 );
 
 router.get(
   "/:id",
   authorize("ORG_ADMIN", "AGENT"),
-  getCustomer
+  getRequester
 );
 
 router.post(
   "/",
   authorize("ORG_ADMIN"),
-  createCustomer
+  createRequester
 );
 
 router.patch(
   "/:id",
   authorize("ORG_ADMIN"),
-  updateCustomer
+  updateRequester
 );
 
 router.patch(
   "/:id/activate",
   authorize("ORG_ADMIN"),
-  activateCustomer
+  activateRequester
 );
 
 router.patch(
   "/:id/deactivate",
   authorize("ORG_ADMIN"),
-  deactivateCustomer
+  deactivateRequester
 );
 
 router.delete(
   "/:id",
   authorize("ORG_ADMIN"),
-  deleteCustomer
+  deleteRequester
 );
 
 export default router;

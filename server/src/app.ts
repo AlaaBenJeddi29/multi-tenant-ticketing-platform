@@ -3,7 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
-
+import { startAutomationJobs } from "./modules/automation/jobs/automation.jobs.js";
 // Route Imports
 import authRoutes from "./modules/auth/routes/auth.routes.js";
 import organizationRoutes from "./modules/organization/routes/organization.routes.js";
@@ -19,9 +19,10 @@ import requesterRoutes from "./modules/requesters/routes/requester.routes.js";
 import ticketRoutes from "./modules/tickets/routes/ticket.routes.js";
 import slaRoutes from "./modules/sla/routes/sla.routes.js";
 import commentRoutes from "./modules/comments/routes/comment.routes.js";
+import automationRoutes from "./modules/automation/routes/automation.routes.js";
 
 const app = express();
-
+startAutomationJobs();
 // 1. Security & Logging Middlewares
 app.use(helmet());
 app.use(morgan("dev"));
@@ -46,6 +47,7 @@ app.use("/api/requesters", requesterRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/slas", slaRoutes);
 app.use("/api/comments", commentRoutes);
+app.use("/api/automation", automationRoutes);
 
 
 
