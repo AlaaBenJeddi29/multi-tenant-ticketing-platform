@@ -44,21 +44,22 @@ enum AutomationTrigger {
 
 enum AutomationCondition {
   ALWAYS
-  PRIORITY_IS
   STATUS_IS
-  CATEGORY_IS
-  ASSIGNED_AGENT_IS
-  REQUESTER_IS
+  PRIORITY_IS
+  UNASSIGNED
   RESPONSE_BREACHED
   RESOLUTION_BREACHED
 }
-
 enum AutomationAction {
   ASSIGN_AGENT
-  CHANGE_PRIORITY
   CHANGE_STATUS
-  ADD_INTERNAL_COMMENT
+  CHANGE_PRIORITY
+  ADD_COMMENT
+  CLOSE_TICKET
+  REOPEN_TICKET
   SEND_NOTIFICATION
+  SEND_EMAIL
+  WEBHOOK
 }
 
 //////////////////////////////// organizations ///////////////////////////////////////
