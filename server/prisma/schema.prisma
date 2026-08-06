@@ -34,6 +34,7 @@ enum TicketStatus {
   RESOLVED
   CLOSED
 }
+
 enum AutomationTrigger {
   TICKET_CREATED
   TICKET_UPDATED
@@ -50,6 +51,7 @@ enum AutomationCondition {
   RESPONSE_BREACHED
   RESOLUTION_BREACHED
 }
+
 enum AutomationAction {
   ASSIGN_AGENT
   CHANGE_STATUS
@@ -69,48 +71,19 @@ model Organization {
   name String
   slug String @unique
 
-  users      User[]
-  categories Category[]
-  priorities Priority[]
-  assets     Asset[]
-  requesters Requester[]
-  tickets    Ticket[]
-  slas       Sla[]
-  automationRules  AutomationRule[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  users           User[]
+  categories      Category[]
+  priorities      Priority[]
+  assets          Asset[]
+  requesters      Requester[]
+  tickets         Ticket[]
+  slas            Sla[]
+  automationRules AutomationRule[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 }
 
 //////////////////////////////// users ///////////////////////////////////////////
-
-model User {
-  id String @id @default(cuid())
-
-  firstName String
-  lastName  String
-
-  email        String @unique
-  passwordHash String
-
-  role Role @default(AGENT)
-
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-
-  createdTickets  Ticket[] @relation("CreatedTickets")
-  assignedTickets Ticket[] @relation("AssignedTickets")
-  comments TicketComment[]
-  isActive Boolean @default(true)
-
-  lastLoginAt DateTime?
-
-  resetPasswordToken     String?
-  resetPasswordExpiresAt DateTime?
-  resetPasswordVerified  Boolean   @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
 
 //////////////////////////////// categories ////////////////////////////////////////
 
@@ -206,6 +179,42 @@ model Requester {
   @@index([organizationId])
 }
 
+////////////////////////////////////////// users ///////////////////////////////////////////
+model User {
+  id String @id @default(cuid())
+
+  firstName String
+  lastName  String
+
+  email        String @unique
+  passwordHash String
+
+  role Role @default(AGENT)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  createdTickets Ticket[] @relation("CreatedTickets")
+
+  assignedTickets Ticket[] @relation("AssignedTickets")
+
+  comments TicketComment[]
+
+  notifications Notification[]
+
+  isActive Boolean @default(true)
+
+  lastLoginAt DateTime?
+
+  resetPasswordToken     String?
+  resetPasswordExpiresAt DateTime?
+  resetPasswordVerified  Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+}
+
 //////////////////////////////////////// tickets ///////////////////////////////////////////
 
 model Ticket {
@@ -234,8 +243,8 @@ model Ticket {
   createdBy   User   @relation("CreatedTickets", fields: [createdById], references: [id])
 
   assignedToId String?
-  assignedTo   User?   @relation("AssignedTickets", fields: [assignedToId], references: [id])
-  comments TicketComment[]
+  assignedTo   User?           @relation("AssignedTickets", fields: [assignedToId], references: [id])
+  comments     TicketComment[]
 
   responseDueAt DateTime
 
@@ -265,10 +274,10 @@ model Sla {
   isActive Boolean @default(true)
 
   organizationId String
-  organization Organization @relation(fields: [organizationId],references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  priorityId String @unique
-  priority Priority @relation(fields: [priorityId],references: [id])
+  priorityId String   @unique
+  priority   Priority @relation(fields: [priorityId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -276,22 +285,25 @@ model Sla {
   @@index([organizationId])
 }
 
+///////////////////////////////////////// ticket comments ///////////////////////////////////////////
+
 model TicketComment {
   id String @id @default(cuid())
 
   content String
 
   ticketId String
-  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
   authorId String
-  author User @relation(fields: [authorId], references: [id])
+  author   User   @relation(fields: [authorId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([ticketId])
 }
+
 model AutomationRule {
   id String @id @default(cuid())
 
@@ -310,13 +322,31 @@ model AutomationRule {
   actionValue String?
 
   organizationId String
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
 
   @@index([organizationId])
-
   @@index([trigger])
+}
+
+/////////////////////////////////////////// notifications ///////////////////////////////////////////
+model Notification {
+  id String @id @default(cuid())
+
+  title String
+
+  message String
+
+  isRead Boolean @default(false)
+
+  userId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
