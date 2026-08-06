@@ -1,33 +1,23 @@
 import { AppError } from "../../../lib/AppError.js";
 
-import type {
-  Prisma,
-} from "../../../generated/prisma/client.js";
+import type { Prisma } from "../../../generated/prisma/client.js";
 
-import type {
-  CreateTicketDto,
-} from "../dto/create-ticket.dto.js";
+import type { CreateTicketDto } from "../dto/create-ticket.dto.js";
 
-import type {
-  UpdateTicketDto,
-} from "../dto/update-ticket.dto.js";
+import type { UpdateTicketDto } from "../dto/update-ticket.dto.js";
 
-import type {
-  AssignTicketDto,
-} from "../dto/assign-ticket.dto.js";
+import type { AssignTicketDto } from "../dto/assign-ticket.dto.js";
 
-import type {
-  UpdateTicketStatusDto,
-} from "../dto/update-ticket-status.dto.js";
+import type { UpdateTicketStatusDto } from "../dto/update-ticket-status.dto.js";
 
-import {
-  findActiveSlaByPriority,
-} from "../../sla/repositories/sla.repository.js";
+import { findActiveSlaByPriority } from "../../sla/repositories/sla.repository.js";
 
 import {
   calculateSlaDeadlines,
   processResolution,
 } from "../../automation/services/automation-runtime.service.js";
+
+import { executeAutomationRules } from "../../automation/services/automation-engine.service.js";
 
 import {
   createTicket,
@@ -43,39 +33,20 @@ import {
   toTicketsResponse,
 } from "../mappers/ticket.mapper.js";
 
-export async function getTickets(
-  organizationId: string
-) {
-  const tickets =
-    await findTickets(
-      organizationId
-    );
+export async function getTickets(organizationId: string) {
+  const tickets = await findTickets(organizationId);
 
-  return toTicketsResponse(
-    tickets
-  );
+  return toTicketsResponse(tickets);
 }
 
-export async function getTicketById(
-  id: string,
-  organizationId: string
-) {
-  const ticket =
-    await findTicketById(
-      id,
-      organizationId
-    );
+export async function getTicketById(id: string, organizationId: string) {
+  const ticket = await findTicketById(id, organizationId);
 
   if (!ticket) {
-    throw new AppError(
-      404,
-      "Ticket not found."
-    );
+    throw new AppError(404, "Ticket not found.");
   }
 
-  return toTicketResponse(
-    ticket
-  );
+  return toTicketResponse(ticket);
 }
 
 export async function createNewTicket(
@@ -83,20 +54,11 @@ export async function createNewTicket(
   organizationId: string,
   createdById: string
 ) {
-  const lastTicket =
-    await getLastTicketNumber(
-      organizationId
-    );
+  const lastTicket = await getLastTicketNumber(organizationId);
 
-  const nextTicketNumber =
-    (lastTicket?.ticketNumber ?? 0) +
-    1;
+  const nextTicketNumber = (lastTicket?.ticketNumber ?? 0) + 1;
 
-  const sla =
-    await findActiveSlaByPriority(
-      dto.priorityId,
-      organizationId
-    );
+  const sla = await findActiveSlaByPriority(dto.priorityId, organizationId);
 
   if (!sla) {
     throw new AppError(
@@ -105,78 +67,72 @@ export async function createNewTicket(
     );
   }
 
-  const {
-    responseDueAt,
-    resolutionDueAt,
-  } = calculateSlaDeadlines(
+  const { responseDueAt, resolutionDueAt } = calculateSlaDeadlines(
     sla.responseTimeMinutes,
     sla.resolutionTimeMinutes
   );
 
-  const ticket =
-    await createTicket({
-      ticketNumber:
-        nextTicketNumber,
+  const ticket = await createTicket({
+    ticketNumber: nextTicketNumber,
 
-      title: dto.title,
+    title: dto.title,
 
-      description:
-        dto.description,
+    description: dto.description,
 
-      responseDueAt,
+    responseDueAt,
 
-      resolutionDueAt,
+    resolutionDueAt,
 
-      organization: {
+    organization: {
+      connect: {
+        id: organizationId,
+      },
+    },
+
+    priority: {
+      connect: {
+        id: dto.priorityId,
+      },
+    },
+
+    category: {
+      connect: {
+        id: dto.categoryId,
+      },
+    },
+
+    requester: {
+      connect: {
+        id: dto.requesterId,
+      },
+    },
+
+    createdBy: {
+      connect: {
+        id: createdById,
+      },
+    },
+
+    ...(dto.assetId && {
+      asset: {
         connect: {
-          id: organizationId,
+          id: dto.assetId,
         },
       },
+    }),
 
-      priority: {
+    ...(dto.assignedToId && {
+      assignedTo: {
         connect: {
-          id: dto.priorityId,
+          id: dto.assignedToId,
         },
       },
+    }),
+  });
 
-      category: {
-        connect: {
-          id: dto.categoryId,
-        },
-      },
+  await executeAutomationRules(ticket.id, "TICKET_CREATED");
 
-      requester: {
-        connect: {
-          id: dto.requesterId,
-        },
-      },
-
-      createdBy: {
-        connect: {
-          id: createdById,
-        },
-      },
-
-      ...(dto.assetId && {
-        asset: {
-          connect: {
-            id: dto.assetId,
-          },
-        },
-      }),
-
-      ...(dto.assignedToId && {
-        assignedTo: {
-          connect: {
-            id: dto.assignedToId,
-          },
-        },
-      }),
-    });
-
-  return toTicketResponse(
-    ticket
-  );
+  return toTicketResponse(ticket);
 }
 
 export async function editTicket(
@@ -184,30 +140,19 @@ export async function editTicket(
   organizationId: string,
   dto: UpdateTicketDto
 ) {
-  await getTicketById(
-    id,
-    organizationId
-  );
+  await getTicketById(id, organizationId);
 
-  const data: Prisma.TicketUpdateInput =
-    {};
+  const data: Prisma.TicketUpdateInput = {};
 
   if (dto.title !== undefined) {
     data.title = dto.title;
   }
 
-  if (
-    dto.description !==
-    undefined
-  ) {
-    data.description =
-      dto.description;
+  if (dto.description !== undefined) {
+    data.description = dto.description;
   }
 
-  if (
-    dto.priorityId !==
-    undefined
-  ) {
+  if (dto.priorityId !== undefined) {
     data.priority = {
       connect: {
         id: dto.priorityId,
@@ -215,10 +160,7 @@ export async function editTicket(
     };
   }
 
-  if (
-    dto.categoryId !==
-    undefined
-  ) {
+  if (dto.categoryId !== undefined) {
     data.category = {
       connect: {
         id: dto.categoryId,
@@ -226,10 +168,7 @@ export async function editTicket(
     };
   }
 
-  if (
-    dto.requesterId !==
-    undefined
-  ) {
+  if (dto.requesterId !== undefined) {
     data.requester = {
       connect: {
         id: dto.requesterId,
@@ -237,10 +176,7 @@ export async function editTicket(
     };
   }
 
-  if (
-    dto.assetId !==
-    undefined
-  ) {
+  if (dto.assetId !== undefined) {
     data.asset = dto.assetId
       ? {
           connect: {
@@ -252,31 +188,23 @@ export async function editTicket(
         };
   }
 
-  if (
-    dto.assignedToId !==
-    undefined
-  ) {
-    data.assignedTo =
-      dto.assignedToId
-        ? {
-            connect: {
-              id: dto.assignedToId,
-            },
-          }
-        : {
-            disconnect: true,
-          };
+  if (dto.assignedToId !== undefined) {
+    data.assignedTo = dto.assignedToId
+      ? {
+          connect: {
+            id: dto.assignedToId,
+          },
+        }
+      : {
+          disconnect: true,
+        };
   }
 
-  const ticket =
-    await updateTicket(
-      id,
-      data
-    );
+  const ticket = await updateTicket(id, data);
 
-  return toTicketResponse(
-    ticket
-  );
+  await executeAutomationRules(id, "TICKET_UPDATED");
+
+  return toTicketResponse(ticket);
 }
 
 export async function assignTicket(
@@ -284,23 +212,17 @@ export async function assignTicket(
   organizationId: string,
   dto: AssignTicketDto
 ) {
-  await getTicketById(
-    id,
-    organizationId
-  );
+  await getTicketById(id, organizationId);
 
-  const ticket =
-    await updateTicket(id, {
-      assignedTo: {
-        connect: {
-          id: dto.assignedToId,
-        },
+  const ticket = await updateTicket(id, {
+    assignedTo: {
+      connect: {
+        id: dto.assignedToId,
       },
-    });
+    },
+  });
 
-  return toTicketResponse(
-    ticket
-  );
+  return toTicketResponse(ticket);
 }
 
 export async function updateStatus(
@@ -308,27 +230,17 @@ export async function updateStatus(
   organizationId: string,
   dto: UpdateTicketStatusDto
 ) {
-  const existing =
-    await findTicketById(
-      id,
-      organizationId
-    );
+  const existing = await findTicketById(id, organizationId);
 
   if (!existing) {
-    throw new AppError(
-      404,
-      "Ticket not found."
-    );
+    throw new AppError(404, "Ticket not found.");
   }
 
   await updateTicket(id, {
     status: dto.status,
   });
 
-  if (
-    dto.status ===
-    "RESOLVED"
-  ) {
+  if (dto.status === "RESOLVED") {
     await processResolution(
       existing.id,
       existing.resolutionDueAt,
@@ -336,34 +248,19 @@ export async function updateStatus(
     );
   }
 
-  const updated =
-    await findTicketById(
-      id,
-      organizationId
-    );
+  await executeAutomationRules(id, "STATUS_CHANGED");
+
+  const updated = await findTicketById(id, organizationId);
 
   if (!updated) {
-    throw new AppError(
-      404,
-      "Ticket not found."
-    );
+    throw new AppError(404, "Ticket not found.");
   }
 
-  return toTicketResponse(
-    updated
-  );
+  return toTicketResponse(updated);
 }
 
-export async function removeTicket(
-  id: string,
-  organizationId: string
-) {
-  await getTicketById(
-    id,
-    organizationId
-  );
+export async function removeTicket(id: string, organizationId: string) {
+  await getTicketById(id, organizationId);
 
-  await deleteTicket(
-    id
-  );
+  await deleteTicket(id);
 }
