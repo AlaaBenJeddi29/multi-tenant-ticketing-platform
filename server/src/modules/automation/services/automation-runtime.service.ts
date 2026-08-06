@@ -1,4 +1,5 @@
 import { prisma } from "../../../lib/prisma.js";
+import { executeAutomationRules } from "./automation-engine.service.js";
 
 export function calculateSlaDeadlines(
   responseTimeMinutes: number,
@@ -76,8 +77,12 @@ export async function processResolution(
 export async function processSlaAutomation() {
   const now = new Date();
 
-  const responseBreached =
-    await prisma.ticket.updateMany({
+  /*
+   * Response breaches
+   */
+
+  const responseTickets =
+    await prisma.ticket.findMany({
       where: {
         status: "NEW",
 
@@ -90,13 +95,34 @@ export async function processSlaAutomation() {
         },
       },
 
+      select: {
+        id: true,
+      },
+    });
+
+  for (const ticket of responseTickets) {
+    await prisma.ticket.update({
+      where: {
+        id: ticket.id,
+      },
+
       data: {
         responseBreached: true,
       },
     });
 
-  const resolutionBreached =
-    await prisma.ticket.updateMany({
+    await executeAutomationRules(
+      ticket.id,
+      "SLA_BREACHED"
+    );
+  }
+
+  /*
+   * Resolution breaches
+   */
+
+  const resolutionTickets =
+    await prisma.ticket.findMany({
       where: {
         status: {
           notIn: [
@@ -112,16 +138,33 @@ export async function processSlaAutomation() {
         },
       },
 
+      select: {
+        id: true,
+      },
+    });
+
+  for (const ticket of resolutionTickets) {
+    await prisma.ticket.update({
+      where: {
+        id: ticket.id,
+      },
+
       data: {
         resolutionBreached: true,
       },
     });
 
+    await executeAutomationRules(
+      ticket.id,
+      "SLA_BREACHED"
+    );
+  }
+
   return {
     responseBreaches:
-      responseBreached.count,
+      responseTickets.length,
 
     resolutionBreaches:
-      resolutionBreached.count,
+      resolutionTickets.length,
   };
 }
