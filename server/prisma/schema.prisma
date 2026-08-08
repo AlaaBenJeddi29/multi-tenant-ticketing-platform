@@ -223,9 +223,8 @@ model Ticket {
   title        String
   description  String?
   status       TicketStatus @default(NEW)
-
-  priorityId String
-  priority   Priority @relation(fields: [priorityId], references: [id])
+  priorityId   String
+  priority     Priority     @relation(fields: [priorityId], references: [id])
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
@@ -242,9 +241,10 @@ model Ticket {
   createdById String
   createdBy   User   @relation("CreatedTickets", fields: [createdById], references: [id])
 
-  assignedToId String?
-  assignedTo   User?           @relation("AssignedTickets", fields: [assignedToId], references: [id])
-  comments     TicketComment[]
+  assignedToId         String?
+  assignedTo           User?                 @relation("AssignedTickets", fields: [assignedToId], references: [id])
+  comments             TicketComment[]
+  automationExecutions AutomationExecution[]
 
   responseDueAt DateTime
 
@@ -322,7 +322,8 @@ model AutomationRule {
   actionValue String?
 
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  executions     AutomationExecution[]
 
   createdAt DateTime @default(now())
 
@@ -330,6 +331,26 @@ model AutomationRule {
 
   @@index([organizationId])
   @@index([trigger])
+}
+
+////////////////////////////////////////// automation executions ///////////////////////////////////////////
+
+model AutomationExecution {
+  id String @id @default(cuid())
+
+  ticketId String
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  automationRuleId String
+  automationRule   AutomationRule @relation(fields: [automationRuleId], references: [id], onDelete: Cascade)
+
+  trigger AutomationTrigger
+
+  executedAt DateTime @default(now())
+
+  @@unique([ticketId, automationRuleId, trigger])
+  @@index([ticketId])
+  @@index([automationRuleId])
 }
 
 /////////////////////////////////////////// notifications ///////////////////////////////////////////

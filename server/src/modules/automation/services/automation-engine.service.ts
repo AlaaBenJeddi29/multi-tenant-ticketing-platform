@@ -1,3 +1,4 @@
+
 import { prisma } from "../../../lib/prisma.js";
 
 import {
@@ -12,6 +13,11 @@ import type {
 import {
   executeAutomationAction,
 } from "./automation-execution.service.js";
+
+import {
+  findAutomationExecution,
+  createAutomationExecution,
+} from "../repositories/automation-execution.repository.js";
 
 export async function executeAutomationRules(
   ticketId: string,
@@ -65,9 +71,37 @@ export async function executeAutomationRules(
       continue;
     }
 
+    /*
+     * Prevent the same rule from being
+     * executed more than once for the
+     * same ticket + trigger.
+     */
+    const existingExecution =
+      await findAutomationExecution(
+        ticket.id,
+        rule.id,
+        trigger
+      );
+
+    if (existingExecution) {
+      continue;
+    }
+
+    /*
+     * Execute the automation action
+     */
     await executeAutomationAction(
       ticket,
       rule
+    );
+
+    /*
+     * Record successful execution
+     */
+    await createAutomationExecution(
+      ticket.id,
+      rule.id,
+      trigger
     );
   }
 }
@@ -103,3 +137,4 @@ function evaluateCondition(
       return false;
   }
 }
+
