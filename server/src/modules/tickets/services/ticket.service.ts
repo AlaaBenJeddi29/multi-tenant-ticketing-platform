@@ -15,9 +15,9 @@ import { findActiveSlaByPriority } from "../../sla/repositories/sla.repository.j
 import {
   calculateSlaDeadlines,
   processResolution,
-} from "../../automation/services/automation-runtime.service.js";
+  executeAutomationRules,
+} from "../../automation/index.js";
 
-import { executeAutomationRules } from "../../automation/services/automation-engine.service.js";
 
 import {
   createTicket,

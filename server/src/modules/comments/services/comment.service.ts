@@ -14,9 +14,11 @@ import {
 
 import { findTicketById } from "../../tickets/repositories/ticket.repository.js";
 
-import { processFirstResponse } from "../../automation/services/automation-runtime.service.js";
+import {
+  processFirstResponse,
+  executeAutomationRules,
+} from "../../automation/index.js";
 
-import { executeAutomationRules } from "../../automation/services/automation-engine.service.js";
 
 import {
   toCommentResponse,
