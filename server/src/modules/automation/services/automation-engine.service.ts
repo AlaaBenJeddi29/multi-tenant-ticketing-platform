@@ -8,6 +8,7 @@ import type {
   AutomationRule,
   Ticket,
 } from "../../../generated/prisma/client.js";
+import { createNewNotification } from "../../notifications/services/notification.service.js";
 
 export async function executeAutomationRules(
   ticketId: string,
@@ -203,7 +204,16 @@ async function executeAction(ticket: Ticket, rule: AutomationRule) {
       break;
 
     case AutomationAction.SEND_NOTIFICATION:
-      // TODO
+      if (!rule.actionValue) return;
+
+      if (!ticket.assignedToId) return;
+
+      await createNewNotification({
+        userId: ticket.assignedToId,
+        title: "Ticket Automation",
+        message: rule.actionValue,
+      });
+
       break;
 
     case AutomationAction.WEBHOOK:
