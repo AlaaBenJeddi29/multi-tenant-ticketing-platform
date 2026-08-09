@@ -20,6 +20,9 @@ import ticketRoutes from "./modules/tickets/routes/ticket.routes.js";
 import slaRoutes from "./modules/sla/routes/sla.routes.js";
 import commentRoutes from "./modules/comments/routes/comment.routes.js";
 import automationRoutes from "./modules/automation/routes/automation.routes.js";
+import dashboardRoutes from "./modules/dashboard/routes/dashboard.routes.js";
+import usersRoutes from "./modules/users/routes/users.routes.js";
+import notificationRoutes from "./modules/notifications/routes/notification.routes.js";
 
 const app = express();
 startAutomationJobs();
@@ -48,6 +51,9 @@ app.use("/api/tickets", ticketRoutes);
 app.use("/api/slas", slaRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/automation", automationRoutes);
+app.use("/api/dashboard",dashboardRoutes);
+app.use("/api/users", usersRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 
 
