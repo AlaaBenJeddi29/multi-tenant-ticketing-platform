@@ -1,7 +1,7 @@
-// Keyed by tenantId so a cached response can never leak across
+// Keyed by organizationId so a cached response can never leak across
 // organizations if the auth context ever changes mid-session.
 export const dashboardKeys = {
-  all: (tenantId: string) => ["dashboard", tenantId] as const,
-  overview: (tenantId: string) =>
-    [...dashboardKeys.all(tenantId), "overview"] as const,
+  all: (organizationId: string) => ["dashboard", organizationId] as const,
+  overview: (organizationId: string) =>
+    [...dashboardKeys.all(organizationId), "overview"] as const,
 };

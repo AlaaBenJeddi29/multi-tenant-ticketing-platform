@@ -7,12 +7,12 @@ import { dashboardKeys } from "../api/dashboard.queryKeys";
 
 export function useDashboardOverview() {
   const { user } = useAuth();
-  const tenantId = user?.tenantId;
+  const organizationId = user?.organizationId;
 
   return useQuery({
-    queryKey: dashboardKeys.overview(tenantId ?? "unknown"),
+    queryKey: dashboardKeys.overview(organizationId ?? "unknown"),
     queryFn: getDashboardOverview,
-    enabled: Boolean(tenantId),
+    enabled: Boolean(organizationId),
     staleTime: 30_000,
     refetchInterval: 60_000,
     refetchOnWindowFocus: true,

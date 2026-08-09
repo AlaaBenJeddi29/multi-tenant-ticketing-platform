@@ -11,7 +11,7 @@ export function useLogin() {
     mutationFn: loginRequest,
 
     onSuccess: (response) => {
-      auth.login(response.accessToken, response.user);
+      auth.setUser(response.user);
 
       console.log("User logged in");
     },

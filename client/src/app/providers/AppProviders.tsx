@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 import { queryClient } from "@/lib/react-query";
 
@@ -18,6 +19,7 @@ export default function AppProviders({
       <AuthProvider>
         {children}
       </AuthProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
 }

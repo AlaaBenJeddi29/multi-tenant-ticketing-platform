@@ -9,7 +9,7 @@ export interface AuthUser {
   lastName: string;
   email: string;
   role: UserRole;
-  tenantId: string;
+  organizationId: string;
 }
 
 export interface LoginRequest {
@@ -41,7 +41,5 @@ export interface ResetPasswordRequest {
 }
 
 export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
   user: AuthUser;
 }

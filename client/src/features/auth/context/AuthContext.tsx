@@ -2,19 +2,20 @@ import {
   createContext,
   useContext,
   useState,
+  useEffect,
   type ReactNode,
 } from "react";
+
+import { api } from "@/api/client";
 
 import type { AuthUser } from "../types/auth.types";
 
 type AuthContextType = {
   user: AuthUser | null;
-  token: string | null;
-
-  login: (token: string, user: AuthUser) => void;
-  logout: () => void;
-
   isAuthenticated: boolean;
+  isLoading: boolean;
+  setUser: (user: AuthUser) => void;
+  logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -25,26 +26,44 @@ type Props = {
 
 export function AuthProvider({ children }: Props) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  function login(token: string, user: AuthUser) {
-    setToken(token);
-    setUser(user);
-  }
+  // Restore session on mount
+  useEffect(() => {
+    const restoreSession = async () => {
+      try {
+        const response = await api.get<AuthUser>("/auth/me");
+        setUser(response.data);
+      } catch (error) {
+        // 401 or any error means no valid session
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  function logout() {
-    setToken(null);
-    setUser(null);
-  }
+    restoreSession();
+  }, []);
+
+  const logout = async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch (error) {
+      // Clear local state regardless of server response
+      console.error("Logout request failed:", error);
+    } finally {
+      setUser(null);
+    }
+  };
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        token,
-        login,
+        isAuthenticated: !!user,
+        isLoading,
+        setUser,
         logout,
-        isAuthenticated: !!token,
       }}
     >
       {children}
