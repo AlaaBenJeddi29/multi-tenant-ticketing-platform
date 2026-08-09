@@ -13,6 +13,7 @@ import {
   clearResetToken,
   findUserByVerifiedResetCode,
   updatePassword,
+  findUserById,
 } from "../repositories/auth.repository.js";
 import { LoginDto } from "../dto/login.dto.js";
 
@@ -164,5 +165,25 @@ export async function resetPassword(
 
   return {
     message: "Password updated successfully.",
+  };
+}
+
+export async function getCurrentUser(
+  userId: string,
+  organizationId: string
+) {
+  const user = await findUserById(userId, organizationId);
+
+  if (!user) {
+    throw new AppError(404, "User not found.");
+  }
+
+  return {
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    role: user.role,
+    organizationId: user.organizationId,
   };
 }

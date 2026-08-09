@@ -65,11 +65,21 @@ export function logout(
     });
 }
 
-export function me(
+export async function me(
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) {
-  return res.status(200).json(req.user);
+  try {
+    const user = await authService.getCurrentUser(
+      req.user!.userId,
+      req.user!.organizationId
+    );
+
+    return res.status(200).json(user);
+  } catch (error) {
+    next(error);
+  }
 }
 
 export async function forgotPassword(

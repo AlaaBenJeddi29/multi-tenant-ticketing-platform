@@ -108,3 +108,23 @@ export async function findUserByVerifiedResetCode(
     },
   });
 }
+
+export async function findUserById(
+  userId: string,
+  organizationId: string
+) {
+  return prisma.user.findFirst({
+    where: {
+      id: userId,
+      organizationId,
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      role: true,
+      organizationId: true,
+    },
+  });
+}
