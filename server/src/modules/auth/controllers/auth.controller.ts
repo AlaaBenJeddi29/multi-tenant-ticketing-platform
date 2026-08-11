@@ -4,10 +4,17 @@ import { loginSchema } from "../dto/login.dto.js";
 import { registerSchema } from "../validators/auth.validator.js";
 import * as authService from "../services/auth.service.js";
 import type { AuthenticatedRequest } from "../../../middleware/auth.middleware.js";
-import { accessTokenCookie } from "../../../lib/cookies.js";
+import { accessTokenCookie, refreshTokenCookie } from "../../../lib/cookies.js";
 import { forgotPasswordSchema } from "../dto/forgot-password.dto.js";
 import { verifyResetCodeSchema } from "../dto/verify-reset-code.dto.js";
 import { resetPasswordSchema } from "../dto/reset-password.dto.js";
+import {
+  generateRefreshToken,
+  storeRefreshToken,
+  findValidRefreshToken,
+  revokeRefreshToken,
+} from "../../../lib/refreshToken.js";
+import { signAccessToken } from "../../../lib/jwt.js";
 
 export async function register(
   req: Request,
@@ -35,11 +42,20 @@ export async function login(
 
     const result = await authService.login(data);
 
+    // Generate and store refresh token
+    const refreshToken = generateRefreshToken();
+    await storeRefreshToken(result.user.id, refreshToken);
+
     return res
       .cookie(
         "accessToken",
         result.token,
         accessTokenCookie
+      )
+      .cookie(
+        "refreshToken",
+        refreshToken,
+        refreshTokenCookie
       )
       .status(200)
       .json({
@@ -50,19 +66,95 @@ export async function login(
   }
 }
 
-export function logout(
+export async function logout(
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) {
-  return res
-    .clearCookie(
-      "accessToken",
-      accessTokenCookie
-    )
-    .status(200)
-    .json({
-      message: "Logged out successfully",
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    // Revoke the refresh token if present
+    if (refreshToken) {
+      await revokeRefreshToken(refreshToken);
+    }
+
+    return res
+      .clearCookie(
+        "accessToken",
+        accessTokenCookie
+      )
+      .clearCookie(
+        "refreshToken",
+        refreshTokenCookie
+      )
+      .status(200)
+      .json({
+        message: "Logged out successfully",
+      });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function refresh(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res
+        .clearCookie("accessToken", accessTokenCookie)
+        .clearCookie("refreshToken", refreshTokenCookie)
+        .status(401)
+        .json({
+          message: "Refresh token not found",
+        });
+    }
+
+    // Find and validate the refresh token
+    const tokenRecord = await findValidRefreshToken(refreshToken);
+
+    if (!tokenRecord) {
+      return res
+        .clearCookie("accessToken", accessTokenCookie)
+        .clearCookie("refreshToken", refreshTokenCookie)
+        .status(401)
+        .json({
+          message: "Invalid or expired refresh token",
+        });
+    }
+
+    // Revoke the old refresh token (rotation - never reuse)
+    await revokeRefreshToken(refreshToken);
+
+    // Generate new tokens
+    const newAccessToken = signAccessToken({
+      userId: tokenRecord.user.id,
+      organizationId: tokenRecord.user.organizationId,
+      role: tokenRecord.user.role,
     });
+
+    const newRefreshToken = generateRefreshToken();
+    await storeRefreshToken(tokenRecord.user.id, newRefreshToken);
+
+    // Return same shape as /me endpoint
+    const user = await authService.getCurrentUser(
+      tokenRecord.user.id,
+      tokenRecord.user.organizationId
+    );
+
+    return res
+      .cookie("accessToken", newAccessToken, accessTokenCookie)
+      .cookie("refreshToken", newRefreshToken, refreshTokenCookie)
+      .status(200)
+      .json(user);
+  } catch (error) {
+    next(error);
+  }
 }
 
 export async function me(
