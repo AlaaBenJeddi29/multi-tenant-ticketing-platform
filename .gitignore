@@ -1,0 +1,7 @@
+# Kiro generated files
+**/kiro/
+# Kiro generated verification/test artifacts
+**/*verification*
+**/*test*.md
+**/*test*.ps1
+**/*smoke-test*
