@@ -5,8 +5,8 @@ import {
   AlertCircle,
   Package,
   Users,
+  Ticket,
   // Placeholder imports for future links:
-  // Ticket,
   // Clock,
   // Zap,
   // UserCog,
@@ -59,14 +59,14 @@ export function AppSidebar() {
       icon: Users,
       label: "Requesters",
     },
+    {
+      to: "/tickets",
+      icon: Ticket,
+      label: "Tickets",
+    },
     // ==========================================
     // PLACEHOLDER LINKS - TO BE ADDED IN LATER PHASES
     // ==========================================
-    // {
-    //   to: "/tickets",
-    //   icon: Ticket,
-    //   label: "Tickets",
-    // },
     // {
     //   to: "/slas",
     //   icon: Clock,

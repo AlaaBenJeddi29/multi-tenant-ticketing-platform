@@ -12,9 +12,11 @@ export const ROUTES = {
   PRIORITIES: "/priorities",
   ASSETS: "/assets",
   REQUESTERS: "/requesters",
+  TICKETS: "/tickets",
+  TICKET_NEW: "/tickets/new",
+  TICKET_DETAIL: "/tickets/:id",
   
   // To be added in later phases:
-  // TICKETS: "/tickets",
   // SLAS: "/slas",
   // AUTOMATION: "/automation",
   // USERS: "/users",

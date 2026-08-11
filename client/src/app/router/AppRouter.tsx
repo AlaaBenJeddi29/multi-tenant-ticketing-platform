@@ -16,6 +16,9 @@ import CategoriesPage from "@/features/categories/pages/CategoriesPage";
 import PrioritiesPage from "@/features/priorities/pages/PrioritiesPage";
 import AssetsPage from "@/features/assets/pages/AssetsPage";
 import RequestersPage from "@/features/requesters/pages/RequestersPage";
+import TicketsListPage from "@/features/tickets/pages/TicketsListPage";
+import CreateTicketPage from "@/features/tickets/pages/CreateTicketPage";
+import TicketDetailPage from "@/features/tickets/pages/TicketDetailPage";
 import NotFoundPage from "@/features/errors/pages/NotFoundPage";
 
 import { ROUTES } from "./routes";
@@ -45,6 +48,9 @@ const router = createBrowserRouter([
               { path: ROUTES.PRIORITIES, element: <PrioritiesPage /> },
               { path: ROUTES.ASSETS, element: <AssetsPage /> },
               { path: ROUTES.REQUESTERS, element: <RequestersPage /> },
+              { path: ROUTES.TICKETS, element: <TicketsListPage /> },
+              { path: ROUTES.TICKET_NEW, element: <CreateTicketPage /> },
+              { path: ROUTES.TICKET_DETAIL, element: <TicketDetailPage /> },
             ],
           },
         ],
