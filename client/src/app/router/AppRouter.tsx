@@ -4,8 +4,6 @@ import RootLayout from "../layouts/RootLayout";
 import PublicLayout from "../layouts/PublicLayout";
 import ProtectedLayout from "../layouts/ProtectedLayout";
 
-import RequireAuth from "@/features/auth/components/RequireAuth";
-
 import HomePage from "@/features/home/pages/HomePage";
 import LoginPage from "@/features/auth/pages/LoginPage";
 import RegisterPage from "@/features/auth/pages/RegisterPage";
@@ -20,6 +18,8 @@ import TicketsListPage from "@/features/tickets/pages/TicketsListPage";
 import CreateTicketPage from "@/features/tickets/pages/CreateTicketPage";
 import TicketDetailPage from "@/features/tickets/pages/TicketDetailPage";
 import NotFoundPage from "@/features/errors/pages/NotFoundPage";
+import RequireAuth from "@/features/auth/components/RequireAuth";
+import { SlasPage } from "@/features/sla";
 
 import { ROUTES } from "./routes";
 
@@ -27,6 +27,7 @@ const router = createBrowserRouter([
   {
     element: <RootLayout />,
     children: [
+      // Public routes
       {
         element: <PublicLayout />,
         children: [
@@ -37,6 +38,7 @@ const router = createBrowserRouter([
           { path: ROUTES.RESET_PASSWORD, element: <ResetPasswordPage /> },
         ],
       },
+      // Protected routes
       {
         element: <RequireAuth />,
         children: [
@@ -51,10 +53,12 @@ const router = createBrowserRouter([
               { path: ROUTES.TICKETS, element: <TicketsListPage /> },
               { path: ROUTES.TICKET_NEW, element: <CreateTicketPage /> },
               { path: ROUTES.TICKET_DETAIL, element: <TicketDetailPage /> },
+              { path: ROUTES.SLAS, element: <SlasPage /> },
             ],
           },
         ],
       },
+      // 404 catch-all
       { path: "*", element: <NotFoundPage /> },
     ],
   },

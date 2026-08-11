@@ -48,9 +48,9 @@ export interface TicketPriority {
   name: string;
   level: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
   color: string;
-  responseTime: number;
-  resolutionTime: number;
   isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 /**

@@ -6,8 +6,8 @@ import {
   Package,
   Users,
   Ticket,
+  Clock,
   // Placeholder imports for future links:
-  // Clock,
   // Zap,
   // UserCog,
   // Bell,
@@ -64,15 +64,15 @@ export function AppSidebar() {
       icon: Ticket,
       label: "Tickets",
     },
+    {
+      to: "/slas",
+      icon: Clock,
+      label: "SLAs",
+      allowedRoles: ["SUPER_ADMIN", "ORG_ADMIN"],
+    },
     // ==========================================
     // PLACEHOLDER LINKS - TO BE ADDED IN LATER PHASES
     // ==========================================
-    // {
-    //   to: "/slas",
-    //   icon: Clock,
-    //   label: "SLAs",
-    //   allowedRoles: ["SUPER_ADMIN", "ORG_ADMIN"], // Example: restrict to admins
-    // },
     // {
     //   to: "/automation",
     //   icon: Zap,

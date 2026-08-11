@@ -1,6 +1,5 @@
 /**
- * Generic paginated response structure
- * Used across all list endpoints for consistency
+ * Pagination metadata returned by the API
  */
 export interface PaginationMeta {
   page: number;
@@ -9,6 +8,10 @@ export interface PaginationMeta {
   totalPages: number;
 }
 
+/**
+ * Generic paginated response structure
+ * Used across all list endpoints for consistency
+ */
 export interface PaginatedResponse<T> {
   data: T[];
   meta: PaginationMeta;
