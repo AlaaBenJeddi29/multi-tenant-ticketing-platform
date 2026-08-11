@@ -1,3 +1,6 @@
+import { buildMeta } from "../../../lib/pagination.js";
+import type { PaginatedResponse } from "../../../lib/pagination.js";
+
 export function toPriorityResponse(
   priority: any
 ) {
@@ -18,4 +21,21 @@ export function toPrioritiesResponse(
   return priorities.map(
     toPriorityResponse
   );
+}
+
+export function toPrioritiesListResponse({
+  items,
+  total,
+  page,
+  pageSize,
+}: {
+  items: any[];
+  total: number;
+  page: number;
+  pageSize: number;
+}): PaginatedResponse<ReturnType<typeof toPriorityResponse>> {
+  return {
+    data: items.map(toPriorityResponse),
+    meta: buildMeta(total, page, pageSize),
+  };
 }

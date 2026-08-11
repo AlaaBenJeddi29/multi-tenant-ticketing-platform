@@ -17,6 +17,10 @@ import {
   updateRequesterSchema,
 } from "../dto/update-requester.dto.js";
 
+import {
+  listRequestersQuerySchema,
+} from "../dto/list-requesters.dto.js";
+
 import * as requesterService
   from "../services/requester.service.js";
 
@@ -26,9 +30,13 @@ export async function getRequesters(
   next: NextFunction
 ) {
   try {
+    const query =
+      listRequestersQuerySchema.parse(req.query);
+
     const requesters =
       await requesterService.getRequesters(
-        req.user!.organizationId
+        req.user!.organizationId,
+        query
       );
 
     return res.status(200).json(requesters);

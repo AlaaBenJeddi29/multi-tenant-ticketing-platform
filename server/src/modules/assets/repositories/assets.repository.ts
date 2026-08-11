@@ -1,5 +1,7 @@
 import { prisma } from "../../../lib/prisma.js";
 import type { Prisma } from "../../../generated/prisma/client.js";
+import { getSkipTake } from "../../../lib/pagination.js";
+import type { ListAssetsQuery } from "../dto/list-assets.dto.js";
 
 const assetSelect = {
   id: true,
@@ -18,18 +20,58 @@ const assetSelect = {
   updatedAt: true,
 } satisfies Prisma.AssetSelect;
 
-export function findAssets(
-  organizationId: string
+export async function findAssets(
+  organizationId: string,
+  query: ListAssetsQuery
 ) {
-  return prisma.asset.findMany({
-    where: {
-      organizationId,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    select: assetSelect,
-  });
+  const where: Prisma.AssetWhereInput = {
+    organizationId,
+  };
+
+  // Apply search filter (name or assetTag)
+  if (query.search) {
+    where.OR = [
+      {
+        name: {
+          contains: query.search,
+          mode: "insensitive",
+        },
+      },
+      {
+        assetTag: {
+          contains: query.search,
+          mode: "insensitive",
+        },
+      },
+    ];
+  }
+
+  // Apply status filter
+  if (query.status !== undefined) {
+    where.status = query.status;
+  }
+
+  // Build orderBy
+  const orderBy: Prisma.AssetOrderByWithRelationInput = {
+    [query.sortBy]: query.sortOrder,
+  };
+
+  // Calculate pagination
+  const { skip, take } = getSkipTake(query.page, query.pageSize);
+
+  // Execute queries in parallel
+  const [items, total] = await Promise.all([
+    prisma.asset.findMany({
+      where,
+      orderBy,
+      skip,
+      take,
+      select: assetSelect,
+    }),
+    prisma.asset.count({ where }),
+  ]);
+
+  return { items, total };
 }
 
 export function findAssetById(

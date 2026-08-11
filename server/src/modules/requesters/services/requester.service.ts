@@ -8,6 +8,10 @@ import type {
   UpdateRequesterDto,
 } from "../dto/update-requester.dto.js";
 
+import type {
+  ListRequestersQuery,
+} from "../dto/list-requesters.dto.js";
+
 import {
   createRequester,
   deleteRequester,
@@ -19,16 +23,22 @@ import {
 
 import {
   toRequesterResponse,
-  toRequestersResponse,
+  toRequestersListResponse,
 } from "../mappers/requester.mapper.js";
 
 export async function getRequesters(
-  organizationId: string
+  organizationId: string,
+  query: ListRequestersQuery
 ) {
-  const requesters =
-    await findRequesters(organizationId);
+  const { items, total } =
+    await findRequesters(organizationId, query);
 
-  return toRequestersResponse(requesters);
+  return toRequestersListResponse({
+    items,
+    total,
+    page: query.page,
+    pageSize: query.pageSize,
+  });
 }
 
 export async function getRequesterById(

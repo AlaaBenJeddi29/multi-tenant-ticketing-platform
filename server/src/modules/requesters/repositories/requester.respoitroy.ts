@@ -1,5 +1,7 @@
 import { prisma } from "../../../lib/prisma.js";
 import type { Prisma } from "../../../generated/prisma/client.js";
+import { getSkipTake } from "../../../lib/pagination.js";
+import type { ListRequestersQuery } from "../dto/list-requesters.dto.js";
 
 const requesterSelect = {
   id: true,
@@ -15,18 +17,70 @@ const requesterSelect = {
   updatedAt: true,
 } satisfies Prisma.RequesterSelect;
 
-export function findRequesters(
-  organizationId: string
+export async function findRequesters(
+  organizationId: string,
+  query: ListRequestersQuery
 ) {
-  return prisma.requester.findMany({
-    where: {
-      organizationId,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    select: requesterSelect,
-  });
+  const where: Prisma.RequesterWhereInput = {
+    organizationId,
+  };
+
+  // Apply search filter (firstName, lastName, email, company)
+  if (query.search) {
+    where.OR = [
+      {
+        firstName: {
+          contains: query.search,
+          mode: "insensitive",
+        },
+      },
+      {
+        lastName: {
+          contains: query.search,
+          mode: "insensitive",
+        },
+      },
+      {
+        email: {
+          contains: query.search,
+          mode: "insensitive",
+        },
+      },
+      {
+        company: {
+          contains: query.search,
+          mode: "insensitive",
+        },
+      },
+    ];
+  }
+
+  // Apply isActive filter
+  if (query.isActive !== undefined) {
+    where.isActive = query.isActive;
+  }
+
+  // Build orderBy
+  const orderBy: Prisma.RequesterOrderByWithRelationInput = {
+    [query.sortBy]: query.sortOrder,
+  };
+
+  // Calculate pagination
+  const { skip, take } = getSkipTake(query.page, query.pageSize);
+
+  // Execute queries in parallel
+  const [items, total] = await Promise.all([
+    prisma.requester.findMany({
+      where,
+      orderBy,
+      skip,
+      take,
+      select: requesterSelect,
+    }),
+    prisma.requester.count({ where }),
+  ]);
+
+  return { items, total };
 }
 
 export function findRequesterById(

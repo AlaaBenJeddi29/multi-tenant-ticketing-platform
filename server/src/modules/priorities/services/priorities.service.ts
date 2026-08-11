@@ -8,6 +8,10 @@ import type {
   UpdatePriorityDto,
 } from "../dto/update-priority.dto.js";
 
+import type {
+  ListPrioritiesQuery,
+} from "../dto/list-priorities.dto.js";
+
 import {
   createPriority,
   deletePriority,
@@ -19,16 +23,22 @@ import {
 
 import {
   toPriorityResponse,
-  toPrioritiesResponse,
+  toPrioritiesListResponse,
 } from "../mappers/priority.mapper.js";
 
 export async function getPriorities(
-  organizationId: string
+  organizationId: string,
+  query: ListPrioritiesQuery
 ) {
-  const priorities =
-    await findPriorities(organizationId);
+  const { items, total } =
+    await findPriorities(organizationId, query);
 
-  return toPrioritiesResponse(priorities);
+  return toPrioritiesListResponse({
+    items,
+    total,
+    page: query.page,
+    pageSize: query.pageSize,
+  });
 }
 
 export async function getPriorityById(

@@ -17,6 +17,10 @@ import {
   updateSlaSchema,
 } from "../dto/update-sla.dto.js";
 
+import {
+  listSlasQuerySchema,
+} from "../dto/list-slas.dto.js";
+
 import * as slaService
   from "../services/sla.service.js";
 
@@ -26,9 +30,13 @@ export async function getSlas(
   next: NextFunction
 ) {
   try {
+    const query =
+      listSlasQuerySchema.parse(req.query);
+
     const slas =
       await slaService.getSlas(
-        req.user!.organizationId
+        req.user!.organizationId,
+        query
       );
 
     return res.status(200).json(slas);

@@ -8,6 +8,10 @@ import type {
   UpdateCategoryDto,
 } from "../dto/update-category.dto.js";
 
+import type {
+  ListCategoriesQuery,
+} from "../dto/list-categories.dto.js";
+
 import {
   createCategory,
   deleteCategory,
@@ -19,16 +23,22 @@ import {
 
 import {
   toCategoryResponse,
-  toCategoriesResponse,
+  toCategoriesListResponse,
 } from "../mappers/category.mapper.js";
 
 export async function getCategories(
-  organizationId: string
+  organizationId: string,
+  query: ListCategoriesQuery
 ) {
-  const categories =
-    await findCategories(organizationId);
+  const { items, total } =
+    await findCategories(organizationId, query);
 
-  return toCategoriesResponse(categories);
+  return toCategoriesListResponse({
+    items,
+    total,
+    page: query.page,
+    pageSize: query.pageSize,
+  });
 }
 
 export async function getCategoryById(

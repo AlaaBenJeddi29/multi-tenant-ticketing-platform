@@ -17,6 +17,10 @@ import {
   updateCommentSchema,
 } from "../dto/update-comment.dto.js";
 
+import {
+  listCommentsQuerySchema,
+} from "../dto/list-comments.dto.js";
+
 import * as commentService
   from "../services/comment.service.js";
 
@@ -26,13 +30,17 @@ export async function getComments(
   next: NextFunction
 ) {
   try {
+    const query =
+      listCommentsQuerySchema.parse(req.query);
+
     const comments =
       await commentService.getComments(
         requireParam(
           req.params.ticketId,
           "ticketId"
         ),
-        req.user!.organizationId
+        req.user!.organizationId,
+        query
       );
 
     return res.status(200).json(

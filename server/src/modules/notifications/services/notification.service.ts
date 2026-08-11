@@ -8,6 +8,10 @@ import type {
   UpdateNotificationDto,
 } from "../dto/update-notification.dto.js";
 
+import type {
+  ListNotificationsQuery,
+} from "../dto/list-notifications.dto.js";
+
 import {
   countUnreadNotifications,
   createNotification,
@@ -20,18 +24,22 @@ import {
 
 import {
   toNotificationResponse,
-  toNotificationsResponse,
+  toNotificationsListResponse,
 } from "../mappers/notification.mapper.js";
 
 export async function getNotifications(
-  userId: string
+  userId: string,
+  query: ListNotificationsQuery
 ) {
-  const notifications =
-    await findNotifications(userId);
+  const { items, total } =
+    await findNotifications(userId, query);
 
-  return toNotificationsResponse(
-    notifications
-  );
+  return toNotificationsListResponse({
+    items,
+    total,
+    page: query.page,
+    pageSize: query.pageSize,
+  });
 }
 
 export async function getNotificationById(

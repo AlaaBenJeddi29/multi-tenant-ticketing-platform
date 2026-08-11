@@ -8,6 +8,10 @@ import type {
   UpdateAutomationRuleDto,
 } from "../dto/update-automation-rule.dto.js";
 
+import type {
+  ListAutomationRulesQuery,
+} from "../dto/list-automation-rules.dto.js";
+
 import {
   createAutomationRule,
   deleteAutomationRule,
@@ -18,20 +22,25 @@ import {
 
 import {
   toAutomationResponse,
-  toAutomationRulesResponse,
+  toAutomationRulesListResponse,
 } from "../mappers/automation.mapper.js";
 
 export async function getAutomationRules(
-  organizationId: string
+  organizationId: string,
+  query: ListAutomationRulesQuery
 ) {
-  const rules =
+  const { items, total } =
     await findAutomationRules(
-      organizationId
+      organizationId,
+      query
     );
 
-  return toAutomationRulesResponse(
-    rules
-  );
+  return toAutomationRulesListResponse({
+    items,
+    total,
+    page: query.page,
+    pageSize: query.pageSize,
+  });
 }
 
 export async function getAutomationRuleById(

@@ -8,6 +8,10 @@ import type {
   UpdateAssetDto,
 } from "../dto/update-asset.dto.js";
 
+import type {
+  ListAssetsQuery,
+} from "../dto/list-assets.dto.js";
+
 import {
   createAsset,
   deleteAsset,
@@ -19,16 +23,22 @@ import {
 
 import {
   toAssetResponse,
-  toAssetsResponse,
+  toAssetsListResponse,
 } from "../mappers/asset.mapper.js";
 
 export async function getAssets(
-  organizationId: string
+  organizationId: string,
+  query: ListAssetsQuery
 ) {
-  const assets =
-    await findAssets(organizationId);
+  const { items, total } =
+    await findAssets(organizationId, query);
 
-  return toAssetsResponse(assets);
+  return toAssetsListResponse({
+    items,
+    total,
+    page: query.page,
+    pageSize: query.pageSize,
+  });
 }
 
 export async function getAssetById(

@@ -2,6 +2,8 @@ import { prisma } from "../../../lib/prisma.js";
 import type {
   Prisma,
 } from "../../../generated/prisma/client.js";
+import { getSkipTake } from "../../../lib/pagination.js";
+import type { ListSlasQuery } from "../dto/list-slas.dto.js";
 
 const slaSelect = {
   id: true,
@@ -25,20 +27,48 @@ const slaSelect = {
   priority: true,
 } satisfies Prisma.SlaSelect;
 
-export function findSlas(
-  organizationId: string
+export async function findSlas(
+  organizationId: string,
+  query: ListSlasQuery
 ) {
-  return prisma.sla.findMany({
-    where: {
-      organizationId,
-    },
+  const where: Prisma.SlaWhereInput = {
+    organizationId,
+  };
 
-    orderBy: {
-      createdAt: "desc",
-    },
+  // Apply search filter (name)
+  if (query.search) {
+    where.name = {
+      contains: query.search,
+      mode: "insensitive",
+    };
+  }
 
-    select: slaSelect,
-  });
+  // Apply isActive filter
+  if (query.isActive !== undefined) {
+    where.isActive = query.isActive;
+  }
+
+  // Build orderBy
+  const orderBy: Prisma.SlaOrderByWithRelationInput = {
+    [query.sortBy]: query.sortOrder,
+  };
+
+  // Calculate pagination
+  const { skip, take } = getSkipTake(query.page, query.pageSize);
+
+  // Execute queries in parallel
+  const [items, total] = await Promise.all([
+    prisma.sla.findMany({
+      where,
+      orderBy,
+      skip,
+      take,
+      select: slaSelect,
+    }),
+    prisma.sla.count({ where }),
+  ]);
+
+  return { items, total };
 }
 
 export function findSlaById(

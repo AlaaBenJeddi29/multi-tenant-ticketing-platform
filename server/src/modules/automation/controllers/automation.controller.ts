@@ -17,6 +17,10 @@ import {
   updateAutomationRuleSchema,
 } from "../dto/update-automation-rule.dto.js";
 
+import {
+  listAutomationRulesQuerySchema,
+} from "../dto/list-automation-rules.dto.js";
+
 import * as automationService
   from "../services/automation.service.js";
 
@@ -26,9 +30,13 @@ export async function getAutomationRules(
   next: NextFunction
 ) {
   try {
+    const query =
+      listAutomationRulesQuerySchema.parse(req.query);
+
     const rules =
       await automationService.getAutomationRules(
-        req.user!.organizationId
+        req.user!.organizationId,
+        query
       );
 
     return res.status(200).json(rules);

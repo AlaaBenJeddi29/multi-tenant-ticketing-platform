@@ -25,6 +25,10 @@ import {
   updateTicketStatusSchema,
 } from "../dto/update-ticket-status.dto.js";
 
+import {
+  listTicketsQuerySchema,
+} from "../dto/list-tickets.dto.js";
+
 import * as ticketService from "../services/ticket.service.js";
 
 export async function getTickets(
@@ -33,8 +37,11 @@ export async function getTickets(
   next: NextFunction
 ) {
   try {
+    const query = listTicketsQuerySchema.parse(req.query);
+
     const tickets = await ticketService.getTickets(
-      req.user!.organizationId
+      req.user!.organizationId,
+      query
     );
 
     return res.status(200).json(tickets);

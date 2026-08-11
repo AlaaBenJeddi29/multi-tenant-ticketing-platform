@@ -1,17 +1,54 @@
 import { prisma } from "../../../lib/prisma.js";
 import type { Prisma } from "../../../generated/prisma/client.js";
+import { getSkipTake } from "../../../lib/pagination.js";
+import type { ListPrioritiesQuery } from "../dto/list-priorities.dto.js";
 
-export function findPriorities(
-  organizationId: string
+export async function findPriorities(
+  organizationId: string,
+  query: ListPrioritiesQuery
 ) {
-  return prisma.priority.findMany({
-    where: {
-      organizationId,
-    },
-    orderBy: {
-      level: "asc",
-    },
-  });
+  const where: Prisma.PriorityWhereInput = {
+    organizationId,
+  };
+
+  // Apply search filter
+  if (query.search) {
+    where.name = {
+      contains: query.search,
+      mode: "insensitive",
+    };
+  }
+
+  // Apply level filter
+  if (query.level !== undefined) {
+    where.level = query.level;
+  }
+
+  // Apply isActive filter
+  if (query.isActive !== undefined) {
+    where.isActive = query.isActive;
+  }
+
+  // Build orderBy
+  const orderBy: Prisma.PriorityOrderByWithRelationInput = {
+    [query.sortBy]: query.sortOrder,
+  };
+
+  // Calculate pagination
+  const { skip, take } = getSkipTake(query.page, query.pageSize);
+
+  // Execute queries in parallel
+  const [items, total] = await Promise.all([
+    prisma.priority.findMany({
+      where,
+      orderBy,
+      skip,
+      take,
+    }),
+    prisma.priority.count({ where }),
+  ]);
+
+  return { items, total };
 }
 
 export function findPriorityById(

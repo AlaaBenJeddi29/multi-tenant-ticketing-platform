@@ -4,6 +4,9 @@ import type {
   Prisma,
 } from "../../../generated/prisma/client.js";
 
+import { getSkipTake } from "../../../lib/pagination.js";
+import type { ListTicketsQuery } from "../dto/list-tickets.dto.js";
+
 export const ticketSelect = {
   id: true,
 
@@ -72,20 +75,72 @@ export const ticketSelect = {
   },
 } satisfies Prisma.TicketSelect;
 
-export function findTickets(
-  organizationId: string
+export async function findTickets(
+  organizationId: string,
+  query: ListTicketsQuery
 ) {
-  return prisma.ticket.findMany({
-    where: {
-      organizationId,
-    },
+  const where: Prisma.TicketWhereInput = {
+    organizationId,
+  };
 
-    orderBy: {
-      createdAt: "desc",
-    },
+  // Apply search filter (title, case-insensitive contains)
+  if (query.search) {
+    where.title = {
+      contains: query.search,
+      mode: "insensitive",
+    };
+  }
 
-    select: ticketSelect,
-  });
+  // Apply status filter
+  if (query.status !== undefined) {
+    where.status = query.status;
+  }
+
+  // Apply priorityId filter
+  if (query.priorityId !== undefined) {
+    where.priorityId = query.priorityId;
+  }
+
+  // Apply categoryId filter
+  if (query.categoryId !== undefined) {
+    where.categoryId = query.categoryId;
+  }
+
+  // Apply requesterId filter
+  if (query.requesterId !== undefined) {
+    where.requesterId = query.requesterId;
+  }
+
+  // Apply assignedToId filter (supports "unassigned" literal)
+  if (query.assignedToId !== undefined) {
+    if (query.assignedToId === "unassigned") {
+      where.assignedToId = null;
+    } else {
+      where.assignedToId = query.assignedToId;
+    }
+  }
+
+  // Build orderBy
+  const orderBy: Prisma.TicketOrderByWithRelationInput = {
+    [query.sortBy]: query.sortOrder,
+  };
+
+  // Calculate pagination
+  const { skip, take } = getSkipTake(query.page, query.pageSize);
+
+  // Execute queries in parallel
+  const [items, total] = await Promise.all([
+    prisma.ticket.findMany({
+      where,
+      orderBy,
+      skip,
+      take,
+      select: ticketSelect,
+    }),
+    prisma.ticket.count({ where }),
+  ]);
+
+  return { items, total };
 }
 
 export function findTicketById(

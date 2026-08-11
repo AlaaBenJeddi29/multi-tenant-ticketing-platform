@@ -17,6 +17,10 @@ import {
   updatePrioritySchema,
 } from "../dto/update-priority.dto.js";
 
+import {
+  listPrioritiesQuerySchema,
+} from "../dto/list-priorities.dto.js";
+
 import * as prioritiesService
 from "../services/priorities.service.js";
 
@@ -26,9 +30,13 @@ export async function getPriorities(
   next: NextFunction
 ) {
   try {
+    const query =
+      listPrioritiesQuerySchema.parse(req.query);
+
     const priorities =
       await prioritiesService.getPriorities(
-        req.user!.organizationId
+        req.user!.organizationId,
+        query
       );
 
     return res.status(200).json(priorities);

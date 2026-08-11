@@ -10,6 +10,8 @@ import type { AssignTicketDto } from "../dto/assign-ticket.dto.js";
 
 import type { UpdateTicketStatusDto } from "../dto/update-ticket-status.dto.js";
 
+import type { ListTicketsQuery } from "../dto/list-tickets.dto.js";
+
 import { findActiveSlaByPriority } from "../../sla/repositories/sla.repository.js";
 
 import {
@@ -30,13 +32,18 @@ import {
 
 import {
   toTicketResponse,
-  toTicketsResponse,
+  toTicketsListResponse,
 } from "../mappers/ticket.mapper.js";
 
-export async function getTickets(organizationId: string) {
-  const tickets = await findTickets(organizationId);
+export async function getTickets(organizationId: string, query: ListTicketsQuery) {
+  const { items, total } = await findTickets(organizationId, query);
 
-  return toTicketsResponse(tickets);
+  return toTicketsListResponse({
+    items,
+    total,
+    page: query.page,
+    pageSize: query.pageSize,
+  });
 }
 
 export async function getTicketById(id: string, organizationId: string) {

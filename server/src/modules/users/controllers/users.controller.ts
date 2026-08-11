@@ -3,6 +3,7 @@ import { requireParam } from "../../../lib/params.js";
 import type { AuthenticatedRequest } from "../../../middleware/auth.middleware.js";
 import { createUserSchema } from "../dto/create-user.dto.js";
 import { updateUserSchema } from "../dto/update-user.dto.js";
+import { listUsersQuerySchema } from "../dto/list-users.dto.js";
 import * as usersService from "../services/users.service.js";
 
 export async function getUsers(
@@ -11,8 +12,11 @@ export async function getUsers(
   next: NextFunction
 ) {
   try {
+    const query = listUsersQuerySchema.parse(req.query);
+
     const users = await usersService.getUsers(
-      req.user!.organizationId
+      req.user!.organizationId,
+      query
     );
 
     return res.status(200).json(users);

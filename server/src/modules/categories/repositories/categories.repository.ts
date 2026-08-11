@@ -1,17 +1,49 @@
 import { prisma } from "../../../lib/prisma.js";
 import type { Prisma } from "../../../generated/prisma/client.js";
+import { getSkipTake } from "../../../lib/pagination.js";
+import type { ListCategoriesQuery } from "../dto/list-categories.dto.js";
 
-export function findCategories(
-  organizationId: string
+export async function findCategories(
+  organizationId: string,
+  query: ListCategoriesQuery
 ) {
-  return prisma.category.findMany({
-    where: {
-      organizationId,
-    },
-    orderBy: {
-      name: "asc",
-    },
-  });
+  const where: Prisma.CategoryWhereInput = {
+    organizationId,
+  };
+
+  // Apply search filter
+  if (query.search) {
+    where.name = {
+      contains: query.search,
+      mode: "insensitive",
+    };
+  }
+
+  // Apply isActive filter
+  if (query.isActive !== undefined) {
+    where.isActive = query.isActive;
+  }
+
+  // Build orderBy
+  const orderBy: Prisma.CategoryOrderByWithRelationInput = {
+    [query.sortBy]: query.sortOrder,
+  };
+
+  // Calculate pagination
+  const { skip, take } = getSkipTake(query.page, query.pageSize);
+
+  // Execute queries in parallel
+  const [items, total] = await Promise.all([
+    prisma.category.findMany({
+      where,
+      orderBy,
+      skip,
+      take,
+    }),
+    prisma.category.count({ where }),
+  ]);
+
+  return { items, total };
 }
 
 export function findCategoryById(

@@ -17,6 +17,10 @@ import {
   updateCategorySchema,
 } from "../dto/update-category.dto.js";
 
+import {
+  listCategoriesQuerySchema,
+} from "../dto/list-categories.dto.js";
+
 import * as categoriesService
 from "../services/categories.service.js";
 
@@ -26,9 +30,13 @@ export async function getCategories(
   next: NextFunction
 ) {
   try {
+    const query =
+      listCategoriesQuerySchema.parse(req.query);
+
     const categories =
       await categoriesService.getCategories(
-        req.user!.organizationId
+        req.user!.organizationId,
+        query
       );
 
     return res.json(categories);

@@ -17,6 +17,10 @@ import {
   updateAssetSchema,
 } from "../dto/update-asset.dto.js";
 
+import {
+  listAssetsQuerySchema,
+} from "../dto/list-assets.dto.js";
+
 import * as assetsService
 from "../services/assets.service.js";
 
@@ -26,9 +30,13 @@ export async function getAssets(
   next: NextFunction
 ) {
   try {
+    const query =
+      listAssetsQuerySchema.parse(req.query);
+
     const assets =
       await assetsService.getAssets(
-        req.user!.organizationId
+        req.user!.organizationId,
+        query
       );
 
     return res.status(200).json(assets);

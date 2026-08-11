@@ -7,6 +7,8 @@ import { createNotificationSchema } from "../dto/create-notification.dto.js";
 
 import { updateNotificationSchema } from "../dto/update-notification.dto.js";
 
+import { listNotificationsQuerySchema } from "../dto/list-notifications.dto.js";
+
 import {
   createNewNotification,
   getNotificationById,
@@ -24,8 +26,9 @@ export async function getNotificationsHandler(
 ) {
   try {
     const userId = req.user!.userId;
+    const query = listNotificationsQuerySchema.parse(req.query);
 
-    const notifications = await getNotifications(userId);
+    const notifications = await getNotifications(userId, query);
 
     res.status(200).json({
       success: true,

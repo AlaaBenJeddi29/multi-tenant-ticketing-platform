@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import { AppError } from "../../../lib/AppError.js"; 
 import type { CreateUserDto } from "../dto/create-user.dto.js";
 import type { UpdateUserDto } from "../dto/update-user.dto.js";
+import type { ListUsersQuery } from "../dto/list-users.dto.js";
 import {
   createUser,
   deleteUser,
@@ -13,18 +14,25 @@ import {
 
 import {
   toUserResponse,
-  toUsersResponse,
+  toUsersListResponse,
 } from "../mappers/user.mapper.js";
 
 export async function getUsers(
-  organizationId: string
+  organizationId: string,
+  query: ListUsersQuery
 ) {
-  const users =
+  const { items, total } =
     await findUsersByOrganization(
-      organizationId
+      organizationId,
+      query
     );
 
-  return toUsersResponse(users);
+  return toUsersListResponse({
+    items,
+    total,
+    page: query.page,
+    pageSize: query.pageSize,
+  });
 }
 
 

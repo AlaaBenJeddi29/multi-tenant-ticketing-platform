@@ -4,6 +4,9 @@ import type {
   Prisma,
 } from "../../../generated/prisma/client.js";
 
+import { getSkipTake } from "../../../lib/pagination.js";
+import type { ListCommentsQuery } from "../dto/list-comments.dto.js";
+
 const commentSelect = {
   id: true,
 
@@ -31,20 +34,35 @@ author: {
 },
 } satisfies Prisma.TicketCommentSelect;
 
-export function findComments(
-  ticketId: string
+export async function findComments(
+  ticketId: string,
+  query: ListCommentsQuery
 ) {
-  return prisma.ticketComment.findMany({
-    where: {
-      ticketId,
-    },
+  const where: Prisma.TicketCommentWhereInput = {
+    ticketId,
+  };
 
-    orderBy: {
-      createdAt: "asc",
-    },
+  // sortBy and sortOrder are fixed to createdAt asc for comments
+  const orderBy: Prisma.TicketCommentOrderByWithRelationInput = {
+    createdAt: "asc",
+  };
 
-    select: commentSelect,
-  });
+  // Calculate pagination
+  const { skip, take } = getSkipTake(query.page, query.pageSize);
+
+  // Execute queries in parallel
+  const [items, total] = await Promise.all([
+    prisma.ticketComment.findMany({
+      where,
+      orderBy,
+      skip,
+      take,
+      select: commentSelect,
+    }),
+    prisma.ticketComment.count({ where }),
+  ]);
+
+  return { items, total };
 }
 
 export function findCommentById(

@@ -8,6 +8,10 @@ import type {
   UpdateSlaDto,
 } from "../dto/update-sla.dto.js";
 
+import type {
+  ListSlasQuery,
+} from "../dto/list-slas.dto.js";
+
 import {
   createSla,
   deleteSla,
@@ -19,16 +23,22 @@ import {
 
 import {
   toSlaResponse,
-  toSlasResponse,
+  toSlasListResponse,
 } from "../mappers/sla.mapper.js";
 
 export async function getSlas(
-  organizationId: string
+  organizationId: string,
+  query: ListSlasQuery
 ) {
-  const slas =
-    await findSlas(organizationId);
+  const { items, total } =
+    await findSlas(organizationId, query);
 
-  return toSlasResponse(slas);
+  return toSlasListResponse({
+    items,
+    total,
+    page: query.page,
+    pageSize: query.pageSize,
+  });
 }
 
 export async function getSlaById(

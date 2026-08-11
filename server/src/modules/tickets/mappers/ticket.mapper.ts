@@ -2,6 +2,9 @@ import type {
   Prisma,
 } from "../../../generated/prisma/client.js";
 
+import { buildMeta } from "../../../lib/pagination.js";
+import type { PaginatedResponse } from "../../../lib/pagination.js";
+
 /**
  * Matches exactly what ticket.repository.ts returns.
  */
@@ -128,4 +131,21 @@ export function toTicketsResponse(
   return tickets.map(
     toTicketResponse
   );
+}
+
+export function toTicketsListResponse({
+  items,
+  total,
+  page,
+  pageSize,
+}: {
+  items: TicketWithRelations[];
+  total: number;
+  page: number;
+  pageSize: number;
+}): PaginatedResponse<ReturnType<typeof toTicketResponse>> {
+  return {
+    data: items.map(toTicketResponse),
+    meta: buildMeta(total, page, pageSize),
+  };
 }

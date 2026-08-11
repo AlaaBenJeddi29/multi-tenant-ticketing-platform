@@ -5,6 +5,9 @@ import type {
   AutomationTrigger,
 } from "../../../generated/prisma/client.js";
 
+import { getSkipTake } from "../../../lib/pagination.js";
+import type { ListAutomationRulesQuery } from "../dto/list-automation-rules.dto.js";
+
 const automationRuleSelect = {
   id: true,
 
@@ -29,21 +32,53 @@ const automationRuleSelect = {
   updatedAt: true,
 } satisfies Prisma.AutomationRuleSelect;
 
-export function findAutomationRules(
-  organizationId: string
+export async function findAutomationRules(
+  organizationId: string,
+  query: ListAutomationRulesQuery
 ) {
-  return prisma.automationRule.findMany({
-    where: {
-      organizationId,
-      enabled: true,
-    },
+  const where: Prisma.AutomationRuleWhereInput = {
+    organizationId,
+  };
 
-    orderBy: {
-      createdAt: "asc",
-    },
+  // Apply search filter (name)
+  if (query.search) {
+    where.name = {
+      contains: query.search,
+      mode: "insensitive",
+    };
+  }
 
-    select: automationRuleSelect,
-  });
+  // Apply trigger filter
+  if (query.trigger !== undefined) {
+    where.trigger = query.trigger;
+  }
+
+  // Apply enabled filter
+  if (query.enabled !== undefined) {
+    where.enabled = query.enabled;
+  }
+
+  // Build orderBy
+  const orderBy: Prisma.AutomationRuleOrderByWithRelationInput = {
+    [query.sortBy]: query.sortOrder,
+  };
+
+  // Calculate pagination
+  const { skip, take } = getSkipTake(query.page, query.pageSize);
+
+  // Execute queries in parallel
+  const [items, total] = await Promise.all([
+    prisma.automationRule.findMany({
+      where,
+      orderBy,
+      skip,
+      take,
+      select: automationRuleSelect,
+    }),
+    prisma.automationRule.count({ where }),
+  ]);
+
+  return { items, total };
 }
 
 export function findAutomationRulesByTrigger(

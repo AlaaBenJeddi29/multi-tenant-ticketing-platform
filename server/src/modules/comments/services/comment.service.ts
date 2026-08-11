@@ -4,6 +4,8 @@ import type { CreateCommentDto } from "../dto/create-comment.dto.js";
 
 import type { UpdateCommentDto } from "../dto/update-comment.dto.js";
 
+import type { ListCommentsQuery } from "../dto/list-comments.dto.js";
+
 import {
   createComment,
   deleteComment,
@@ -22,12 +24,13 @@ import {
 
 import {
   toCommentResponse,
-  toCommentsResponse,
+  toCommentsListResponse,
 } from "../mappers/comment.mapper.js";
 
 export async function getComments(
   ticketId: string,
-  organizationId: string
+  organizationId: string,
+  query: ListCommentsQuery
 ) {
   const ticket = await findTicketById(ticketId, organizationId);
 
@@ -35,9 +38,14 @@ export async function getComments(
     throw new AppError(404, "Ticket not found.");
   }
 
-  const comments = await findComments(ticketId);
+  const { items, total } = await findComments(ticketId, query);
 
-  return toCommentsResponse(comments);
+  return toCommentsListResponse({
+    items,
+    total,
+    page: query.page,
+    pageSize: query.pageSize,
+  });
 }
 
 export async function createNewComment(
