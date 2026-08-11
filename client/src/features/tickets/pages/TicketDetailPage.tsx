@@ -17,6 +17,7 @@ import { useTicket } from "../hooks/useTicket";
 import { useUpdateTicketStatus } from "../hooks/useUpdateTicketStatus";
 import { useAssignTicket } from "../hooks/useAssignTicket";
 import { useUsersList } from "@/features/users/hooks/useUsersList";
+import { CommentThread } from "@/features/comments";
 
 import type { TicketStatus } from "../types/ticket.types";
 
@@ -181,10 +182,7 @@ export default function TicketDetailPage() {
           {/* Comments Placeholder - Phase 5 */}
           {/* Comments thread mounts here — Phase 5 */}
           <div className="rounded-lg border border-border bg-card p-6">
-            <h2 className="text-lg font-semibold mb-4">Comments</h2>
-            <p className="text-sm text-muted-foreground">
-              Comments feature will be implemented in Phase 5
-            </p>
+            <CommentThread ticketId={ticket.id} comments={ticket.comments} />
           </div>
         </div>
 
