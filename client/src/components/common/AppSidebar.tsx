@@ -7,8 +7,8 @@ import {
   Users,
   Ticket,
   Clock,
+  Zap,
   // Placeholder imports for future links:
-  // Zap,
   // UserCog,
   // Bell,
   LogOut,
@@ -70,15 +70,15 @@ export function AppSidebar() {
       label: "SLAs",
       allowedRoles: ["SUPER_ADMIN", "ORG_ADMIN"],
     },
+    {
+      to: "/automation",
+      icon: Zap,
+      label: "Automation",
+      allowedRoles: ["SUPER_ADMIN", "ORG_ADMIN"],
+    },
     // ==========================================
     // PLACEHOLDER LINKS - TO BE ADDED IN LATER PHASES
     // ==========================================
-    // {
-    //   to: "/automation",
-    //   icon: Zap,
-    //   label: "Automation",
-    //   allowedRoles: ["SUPER_ADMIN", "ORG_ADMIN"],
-    // },
     // {
     //   to: "/users",
     //   icon: UserCog,

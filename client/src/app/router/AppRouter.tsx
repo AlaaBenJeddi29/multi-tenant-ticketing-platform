@@ -20,6 +20,7 @@ import TicketDetailPage from "@/features/tickets/pages/TicketDetailPage";
 import NotFoundPage from "@/features/errors/pages/NotFoundPage";
 import RequireAuth from "@/features/auth/components/RequireAuth";
 import { SlasPage } from "@/features/sla";
+import { AutomationPage } from "@/features/automation";
 
 import { ROUTES } from "./routes";
 
@@ -54,6 +55,7 @@ const router = createBrowserRouter([
               { path: ROUTES.TICKET_NEW, element: <CreateTicketPage /> },
               { path: ROUTES.TICKET_DETAIL, element: <TicketDetailPage /> },
               { path: ROUTES.SLAS, element: <SlasPage /> },
+              { path: ROUTES.AUTOMATION, element: <AutomationPage /> },
             ],
           },
         ],
