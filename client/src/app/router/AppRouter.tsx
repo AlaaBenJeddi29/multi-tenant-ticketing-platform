@@ -8,6 +8,7 @@ import HomePage from "@/features/home/pages/HomePage";
 import LoginPage from "@/features/auth/pages/LoginPage";
 import RegisterPage from "@/features/auth/pages/RegisterPage";
 import ForgotPasswordPage from "@/features/auth/pages/ForgotPasswordPage";
+import VerifyResetCodePage from "@/features/auth/pages/VerifyResetCodePage";
 import ResetPasswordPage from "@/features/auth/pages/ResetPasswordPage";
 import DashboardPage from "@/features/dashboard/pages/DashboardPage";
 import CategoriesPage from "@/features/categories/pages/CategoriesPage";
@@ -38,6 +39,7 @@ const router = createBrowserRouter([
           { path: ROUTES.LOGIN, element: <LoginPage /> },
           { path: ROUTES.REGISTER, element: <RegisterPage /> },
           { path: ROUTES.FORGOT_PASSWORD, element: <ForgotPasswordPage /> },
+          { path: ROUTES.VERIFY_RESET_CODE, element: <VerifyResetCodePage /> },
           { path: ROUTES.RESET_PASSWORD, element: <ResetPasswordPage /> },
         ],
       },

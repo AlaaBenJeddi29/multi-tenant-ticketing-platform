@@ -37,8 +37,8 @@ const ForgotPasswordForm = () => {
         description: "Check your email for the password reset code.",
       })
       
-      // Navigate to reset password page with email in state
-      navigate(ROUTES.RESET_PASSWORD, { state: { email: data.email } })
+      // Navigate to verify reset code page with email in state
+      navigate(ROUTES.VERIFY_RESET_CODE, { state: { email: data.email } })
     } catch (error: any) {
       toast({
         title: "Failed to send reset code",

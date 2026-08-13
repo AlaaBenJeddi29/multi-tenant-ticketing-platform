@@ -1,28 +1,12 @@
 "use client";
 
 import * as React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import {
-  ArrowRightIcon,
-  CheckCircle2Icon,
-  EyeIcon,
-  EyeOffIcon,
-  KeyIcon,
-  LockIcon,
-  ShieldIcon,
-} from 'lucide-react';
-import { Button, buttonVariants } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { EyeIcon, EyeOffIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   Field,
   FieldDescription,
@@ -31,85 +15,46 @@ import {
   FieldLabel,
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ROUTES } from '@/app/router/routes';
 import { useToast } from '@/hooks/use-toast';
-import { useVerifyResetCode } from '@/features/auth/hooks/useVerifyResetCode';
 import { useResetPassword } from '@/features/auth/hooks/useResetPassword';
 
 import {
-  verifyResetCodeSchema,
   resetPasswordSchema,
-  type VerifyResetCodeFormData,
   type ResetPasswordFormData,
 } from '@/features/auth/schemas/reset-password.schema';
 
-export default function TokenReset() {
+export default function ResetPasswordForm() {
   const location = useLocation();
   const { toast } = useToast();
-  const verifyCodeMutation = useVerifyResetCode();
   const resetPasswordMutation = useResetPassword();
   
-  const [step, setStep] = React.useState<'token' | 'password' | 'complete'>('token');
   const [isPasswordVisible, setIsPasswordVisible] = React.useState(false);
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = React.useState(false);
-  const [verifiedCode, setVerifiedCode] = React.useState<string>('');
 
-  // Get email from navigation state if available (from forgot password page)
-  const emailFromState = location.state?.email;
-  
-  // Log for debugging (can be used to pre-fill email field in future)
-  React.useEffect(() => {
-    if (emailFromState) {
-      console.log("Email from forgot password:", emailFromState);
-    }
-  }, [emailFromState]);
+  // Get email and code from navigation state (from verify code page)
+  const state = location.state as { email?: string; code?: string } | null;
+  const email = state?.email;
+  const code = state?.code;
 
-  // Form for Step 1: Verify Code
   const {
-    register: registerCode,
-    handleSubmit: handleSubmitCode,
-    formState: { errors: codeErrors, isSubmitting: isSubmittingCode },
-  } = useForm<VerifyResetCodeFormData>({
-    resolver: zodResolver(verifyResetCodeSchema),
-  });
-
-  // Form for Step 2: Reset Password
-  const {
-    register: registerPassword,
-    handleSubmit: handleSubmitPassword,
-    formState: { errors: passwordErrors, isSubmitting: isSubmittingPassword },
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
   } = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
   });
 
-  const onSubmitToken = async (data: VerifyResetCodeFormData) => {
-    try {
-      await verifyCodeMutation.mutateAsync({ code: data.code });
-      
-      // Store the verified code for use in password reset
-      setVerifiedCode(data.code);
-      
-      toast({
-        title: "Code verified",
-        description: "You can now set your new password.",
-      });
-      
-      setStep('password');
-    } catch (error: any) {
-      toast({
-        title: "Verification failed",
-        description: error.response?.data?.message || "Invalid or expired reset code.",
-        variant: "destructive",
-      });
-    }
-  };
+  // If email or code is missing, redirect back to forgot password
+  if (!email || !code) {
+    return <Navigate to={ROUTES.FORGOT_PASSWORD} replace />;
+  }
 
-  const onSubmitPassword = async (data: ResetPasswordFormData) => {
+  const onSubmit = async (data: ResetPasswordFormData) => {
     try {
       // Backend expects: { code, password, confirmPassword }
       await resetPasswordMutation.mutateAsync({
-        code: verifiedCode,
+        code: code,
         password: data.password,
         confirmPassword: data.confirmPassword,
       });
@@ -134,243 +79,95 @@ export default function TokenReset() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-12 md:px-6 md:py-16">
-      <Card className="mx-auto max-w-md">
-        <CardHeader className="space-y-1">
-          {step === 'token' && (
-            <>
-              <div className="bg-primary/10 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
-                <KeyIcon className="text-primary h-6 w-6" />
-              </div>
-              <CardTitle className="text-center text-2xl">
-                Verify Reset Code
-              </CardTitle>
-              <CardDescription className="text-center">
-                Enter the reset code from your email to continue
-              </CardDescription>
-            </>
-          )}
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <FieldGroup className="gap-4">
+        <div className="text-center mb-2">
+          <p className="text-sm text-muted-foreground">
+            Resetting password for <strong>{email}</strong>
+          </p>
+        </div>
 
-          {step === 'password' && (
-            <>
-              <div className="bg-primary/10 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
-                <LockIcon className="text-primary h-6 w-6" />
-              </div>
-              <CardTitle className="text-center text-2xl">
-                Create New Password
-              </CardTitle>
-              <CardDescription className="text-center">
-                Set a new secure password for your account
-              </CardDescription>
-            </>
-          )}
-
-          {step === 'complete' && (
-            <>
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                <CheckCircle2Icon className="h-6 w-6 text-green-600" />
-              </div>
-              <CardTitle className="text-center text-2xl">
-                Password Updated
-              </CardTitle>
-              <CardDescription className="text-center">
-                Your password has been reset successfully
-              </CardDescription>
-            </>
-          )}
-        </CardHeader>
-
-        <CardContent>
-          {/* Step indicators */}
-          <div className="mb-6 flex items-center justify-center">
-            <div className="flex w-2/3 items-center">
-              <div
-                className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ${step !== 'token' ? 'bg-primary text-primary-foreground' : 'border-input bg-background border'}`}
-              >
-                1
-              </div>
-              <div
-                className={`h-1 flex-1 ${step !== 'token' ? 'bg-primary' : 'bg-muted'}`}
-              ></div>
-              <div
-                className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ${step === 'complete' ? 'bg-primary text-primary-foreground' : 'border-input bg-background border'}`}
-              >
-                2
-              </div>
-              <div
-                className={`h-1 flex-1 ${step === 'complete' ? 'bg-primary' : 'bg-muted'}`}
-              ></div>
-              <div
-                className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ${step === 'complete' ? 'bg-primary text-primary-foreground' : 'border-input bg-background border'}`}
-              >
-                3
-              </div>
-            </div>
+        {/* New Password */}
+        <Field>
+          <FieldLabel htmlFor="password">New Password</FieldLabel>
+          <div className="relative">
+            <Input
+              id="password"
+              placeholder="••••••••"
+              type={isPasswordVisible ? 'text' : 'password'}
+              aria-invalid={errors.password ? 'true' : 'false'}
+              {...register('password')}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent dark:hover:bg-transparent"
+              onClick={togglePasswordVisibility}
+            >
+              {isPasswordVisible ? (
+                <EyeOffIcon className="h-4 w-4" />
+              ) : (
+                <EyeIcon className="h-4 w-4" />
+              )}
+              <span className="sr-only">Toggle password visibility</span>
+            </Button>
           </div>
+          <FieldError
+            errors={
+              errors.password
+                ? [{ message: errors.password.message }]
+                : []
+            }
+          />
+          <FieldDescription>
+            Must have at least 8 characters with uppercase, lowercase, and number
+          </FieldDescription>
+        </Field>
 
-          {/* STEP 1: VERIFY CODE */}
-          {step === 'token' && (
-            <form onSubmit={handleSubmitCode(onSubmitToken)} className="space-y-4">
-              <FieldGroup>
-                <Field>
-                  <FieldLabel htmlFor="code">Reset Code</FieldLabel>
-                  <Input
-                    id="code"
-                    placeholder="Enter 6-digit code"
-                    maxLength={6}
-                    className="text-center text-lg tracking-widest"
-                    aria-invalid={codeErrors.code ? 'true' : 'false'}
-                    {...registerCode('code')}
-                  />
-                  <FieldError
-                    errors={codeErrors.code ? [{ message: codeErrors.code.message }] : []}
-                  />
-                  <FieldDescription>
-                    Check your email for the 6-digit verification code we sent you
-                  </FieldDescription>
-                </Field>
-              </FieldGroup>
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={isSubmittingCode || verifyCodeMutation.isPending}
-              >
-                {isSubmittingCode || verifyCodeMutation.isPending ? 'Verifying...' : 'Verify Code'}
-                <ArrowRightIcon className="ml-2 h-4 w-4" />
-              </Button>
-            </form>
-          )}
+        {/* Confirm Password */}
+        <Field>
+          <FieldLabel htmlFor="confirmPassword">Confirm Password</FieldLabel>
+          <div className="relative">
+            <Input
+              id="confirmPassword"
+              placeholder="••••••••"
+              type={isConfirmPasswordVisible ? 'text' : 'password'}
+              aria-invalid={errors.confirmPassword ? 'true' : 'false'}
+              {...register('confirmPassword')}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent dark:hover:bg-transparent"
+              onClick={toggleConfirmPasswordVisibility}
+            >
+              {isConfirmPasswordVisible ? (
+                <EyeOffIcon className="h-4 w-4" />
+              ) : (
+                <EyeIcon className="h-4 w-4" />
+              )}
+              <span className="sr-only">Toggle confirm password visibility</span>
+            </Button>
+          </div>
+          <FieldError
+            errors={
+              errors.confirmPassword
+                ? [{ message: errors.confirmPassword.message }]
+                : []
+            }
+          />
+        </Field>
 
-          {/* STEP 2: CREATE NEW PASSWORD */}
-          {step === 'password' && (
-            <form onSubmit={handleSubmitPassword(onSubmitPassword)} className="space-y-4">
-              <Alert className="mb-4 bg-blue-50 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-                <ShieldIcon className="h-4 w-4" />
-                <AlertDescription>
-                  Your identity has been verified. Now create a new secure password.
-                </AlertDescription>
-              </Alert>
-
-              <FieldGroup>
-                {/* New Password */}
-                <Field>
-                  <FieldLabel htmlFor="password">New Password</FieldLabel>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      placeholder="••••••••"
-                      type={isPasswordVisible ? 'text' : 'password'}
-                      aria-invalid={passwordErrors.password ? 'true' : 'false'}
-                      {...registerPassword('password')}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="text-muted-foreground absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent dark:hover:bg-transparent"
-                      onClick={togglePasswordVisibility}
-                    >
-                      {isPasswordVisible ? (
-                        <EyeOffIcon className="h-4 w-4" />
-                      ) : (
-                        <EyeIcon className="h-4 w-4" />
-                      )}
-                      <span className="sr-only">Toggle password visibility</span>
-                    </Button>
-                  </div>
-                  <FieldError
-                    errors={
-                      passwordErrors.password
-                        ? [{ message: passwordErrors.password.message }]
-                        : []
-                    }
-                  />
-                  <FieldDescription>
-                    Must have at least 8 characters with uppercase, lowercase, and number
-                  </FieldDescription>
-                </Field>
-
-                {/* Confirm Password */}
-                <Field>
-                  <FieldLabel htmlFor="confirmPassword">Confirm Password</FieldLabel>
-                  <div className="relative">
-                    <Input
-                      id="confirmPassword"
-                      placeholder="••••••••"
-                      type={isConfirmPasswordVisible ? 'text' : 'password'}
-                      aria-invalid={passwordErrors.confirmPassword ? 'true' : 'false'}
-                      {...registerPassword('confirmPassword')}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="text-muted-foreground absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent dark:hover:bg-transparent"
-                      onClick={toggleConfirmPasswordVisibility}
-                    >
-                      {isConfirmPasswordVisible ? (
-                        <EyeOffIcon className="h-4 w-4" />
-                      ) : (
-                        <EyeIcon className="h-4 w-4" />
-                      )}
-                      <span className="sr-only">Toggle confirm password visibility</span>
-                    </Button>
-                  </div>
-                  <FieldError
-                    errors={
-                      passwordErrors.confirmPassword
-                        ? [{ message: passwordErrors.confirmPassword.message }]
-                        : []
-                    }
-                  />
-                </Field>
-              </FieldGroup>
-
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={isSubmittingPassword || resetPasswordMutation.isPending}
-              >
-                {isSubmittingPassword || resetPasswordMutation.isPending ? 'Resetting...' : 'Reset Password'}
-              </Button>
-            </form>
-          )}
-
-          {/* STEP 3: COMPLETE */}
-          {step === 'complete' && (
-            <div className="space-y-4 text-center">
-              <div className="rounded-lg bg-green-50 p-4 dark:bg-green-900">
-                <p className="text-green-800 dark:text-green-300">
-                  Your password has been successfully reset. Your account is now secure.
-                </p>
-              </div>
-              <Link to={ROUTES.LOGIN} className={buttonVariants({ className: 'w-full' })}>
-                Sign in with new password
-              </Link>
-            </div>
-          )}
-        </CardContent>
-
-        <CardFooter className="flex justify-center">
-          {step !== 'complete' && (
-            <p className="text-muted-foreground text-sm">
-              Remember your password?{' '}
-              <Link to={ROUTES.LOGIN} className="text-primary underline">
-                Sign in
-              </Link>
-            </p>
-          )}
-
-          {step === 'complete' && (
-            <p className="text-muted-foreground text-sm">
-              Need help?{' '}
-              <a href="#" className="text-primary underline">
-                Contact support
-              </a>
-            </p>
-          )}
-        </CardFooter>
-      </Card>
-    </div>
+        <Button 
+          type="submit" 
+          className="w-full" 
+          disabled={isSubmitting || resetPasswordMutation.isPending}
+        >
+          {isSubmitting || resetPasswordMutation.isPending ? 'Resetting...' : 'Reset Password'}
+        </Button>
+      </FieldGroup>
+    </form>
   );
 }

@@ -4,6 +4,7 @@ export const ROUTES = {
   REGISTER: "/register",
   DASHBOARD: "/dashboard",
   FORGOT_PASSWORD: "/forgot-password",
+  VERIFY_RESET_CODE: "/verify-reset-code",
   RESET_PASSWORD: "/reset-password",
   SLAS: "/slas",
   //Later with backend RESET_PASSWORD: "/reset-password/:token",
