@@ -8,8 +8,8 @@ import {
   Ticket,
   Clock,
   Zap,
+  UserCog,
   // Placeholder imports for future links:
-  // UserCog,
   // Bell,
   LogOut,
 } from "lucide-react";
@@ -76,15 +76,15 @@ export function AppSidebar() {
       label: "Automation",
       allowedRoles: ["SUPER_ADMIN", "ORG_ADMIN"],
     },
+    {
+      to: "/users",
+      icon: UserCog,
+      label: "Users",
+      allowedRoles: ["SUPER_ADMIN", "ORG_ADMIN"],
+    },
     // ==========================================
     // PLACEHOLDER LINKS - TO BE ADDED IN LATER PHASES
     // ==========================================
-    // {
-    //   to: "/users",
-    //   icon: UserCog,
-    //   label: "Users",
-    //   allowedRoles: ["SUPER_ADMIN", "ORG_ADMIN"],
-    // },
     // {
     //   to: "/notifications",
     //   icon: Bell,
