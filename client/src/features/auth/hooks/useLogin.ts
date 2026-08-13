@@ -1,11 +1,14 @@
 import { useMutation } from "@tanstack/react-query";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import { login as loginRequest } from "../api/auth.api";
-
 import { useAuth } from "../context/AuthContext";
+import { ROUTES } from "@/app/router/routes";
 
 export function useLogin() {
   const auth = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   return useMutation({
     mutationFn: loginRequest,
@@ -13,7 +16,10 @@ export function useLogin() {
     onSuccess: (response) => {
       auth.setUser(response.user);
 
-      console.log("User logged in");
+      // Redirect back to where RequireAuth intercepted them, or to dashboard
+      const state = location.state as { from?: { pathname: string } } | null;
+      const destination = state?.from?.pathname ?? ROUTES.DASHBOARD;
+      navigate(destination, { replace: true });
     },
 
     onError: (error) => {

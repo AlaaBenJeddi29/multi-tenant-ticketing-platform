@@ -1,6 +1,7 @@
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -13,6 +14,7 @@ import {
   FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import { ROUTES } from "@/app/router/routes";
 
@@ -28,6 +30,8 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"form">) {
   const loginMutation = useLogin();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [dismissedBanner, setDismissedBanner] = useState<string | null>(null);
 
   const {
     register,
@@ -39,6 +43,17 @@ export function LoginForm({
 
   const onSubmit = (data: LoginFormData) => {
     loginMutation.mutate(data);
+  };
+
+  // Check for success query params
+  const showRegisteredBanner = searchParams.get("registered") === "true" && dismissedBanner !== "registered";
+  const showResetBanner = searchParams.get("reset") === "true" && dismissedBanner !== "reset";
+
+  const handleDismissBanner = (type: string) => {
+    setDismissedBanner(type);
+    // Remove query param from URL
+    searchParams.delete(type);
+    setSearchParams(searchParams, { replace: true });
   };
 
   return (
@@ -57,6 +72,44 @@ export function LoginForm({
             Sign in to continue to your workspace.
           </p>
         </div>
+
+        {/* Success Banner for Registration */}
+        {showRegisteredBanner && (
+          <Alert className="bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-300">
+            <div className="flex items-start justify-between">
+              <AlertDescription className="flex-1">
+                ✓ Account created successfully — please log in.
+              </AlertDescription>
+              <button
+                type="button"
+                onClick={() => handleDismissBanner("registered")}
+                className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200 ml-2"
+                aria-label="Dismiss"
+              >
+                ✕
+              </button>
+            </div>
+          </Alert>
+        )}
+
+        {/* Success Banner for Password Reset */}
+        {showResetBanner && (
+          <Alert className="bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-300">
+            <div className="flex items-start justify-between">
+              <AlertDescription className="flex-1">
+                ✓ Password updated successfully — please log in.
+              </AlertDescription>
+              <button
+                type="button"
+                onClick={() => handleDismissBanner("reset")}
+                className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200 ml-2"
+                aria-label="Dismiss"
+              >
+                ✕
+              </button>
+            </div>
+          </Alert>
+        )}
 
         <Field>
           <FieldLabel htmlFor="email">

@@ -16,12 +16,15 @@ import { ROUTES } from "@/app/router/routes";
 import {
   registerSchema,
   type RegisterFormData,
-} from "@/features/auth/schemas/register.schema"; 
+} from "@/features/auth/schemas/register.schema";
+import { useRegister } from "@/features/auth/hooks/useRegister";
 
 export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
+  const registerMutation = useRegister();
+  
   const {
     register,
     handleSubmit,
@@ -30,9 +33,35 @@ export function SignupForm({
     resolver: zodResolver(registerSchema),
   });
 
-  const onSubmit = (data: RegisterFormData) => {
-    // Send data to your backend API service matching RegisterRequest
-    console.log("Register Request Data:", data);
+  const onSubmit = async (data: RegisterFormData) => {
+    try {
+      // Remove confirmPassword before sending to API
+      const { confirmPassword, ...registerData } = data;
+      
+      await registerMutation.mutateAsync(registerData);
+      // Navigation handled by useRegister hook
+    } catch (error: any) {
+      // Error will be shown by the hook or can be handled here
+      console.error("Registration failed:", error);
+    }
+  };
+
+  // Auto-generate slug from organization name
+  const handleOrganizationNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const name = e.target.value;
+    // Auto-generate slug: lowercase, replace spaces with hyphens, remove special chars
+    const slug = name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    
+    // Update the slug field
+    const slugInput = document.getElementById('organizationSlug') as HTMLInputElement;
+    if (slugInput && !slugInput.dataset.manuallyEdited) {
+      slugInput.value = slug;
+    }
   };
 
   return (
@@ -120,10 +149,50 @@ export function SignupForm({
           <FieldError errors={errors.confirmPassword ? [{ message: errors.confirmPassword.message }] : []} />
         </Field>
 
+        {/* Organization Name */}
+        <Field>
+          <FieldLabel htmlFor="organizationName">Organization Name</FieldLabel>
+          <Input
+            id="organizationName"
+            type="text"
+            placeholder="Acme Corporation"
+            className="bg-background"
+            aria-invalid={errors.organizationName ? "true" : "false"}
+            {...register("organizationName", {
+              onChange: handleOrganizationNameChange,
+            })}
+          />
+          <FieldError errors={errors.organizationName ? [{ message: errors.organizationName.message }] : []} />
+        </Field>
+
+        {/* Organization Slug */}
+        <Field>
+          <FieldLabel htmlFor="organizationSlug">Organization Slug</FieldLabel>
+          <Input
+            id="organizationSlug"
+            type="text"
+            placeholder="acme-corporation"
+            className="bg-background"
+            aria-invalid={errors.organizationSlug ? "true" : "false"}
+            {...register("organizationSlug")}
+            onFocus={(e) => {
+              e.target.dataset.manuallyEdited = 'true';
+            }}
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            This will be part of your organization's URL. Use lowercase letters, numbers, and hyphens only.
+          </p>
+          <FieldError errors={errors.organizationSlug ? [{ message: errors.organizationSlug.message }] : []} />
+        </Field>
+
         {/* Submit Button */}
         <Field>
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "Creating account..." : "Create Account"}
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={isSubmitting || registerMutation.isPending}
+          >
+            {isSubmitting || registerMutation.isPending ? "Creating account..." : "Create Account"}
           </Button>
         </Field>
 

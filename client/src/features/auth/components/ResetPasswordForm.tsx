@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -33,21 +33,37 @@ import {
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ROUTES } from '@/app/router/routes';
+import { useToast } from '@/hooks/use-toast';
+import { useVerifyResetCode } from '@/features/auth/hooks/useVerifyResetCode';
+import { useResetPassword } from '@/features/auth/hooks/useResetPassword';
 
 import {
   verifyResetCodeSchema,
   resetPasswordSchema,
   type VerifyResetCodeFormData,
   type ResetPasswordFormData,
-} from '@/features/auth/schemas/reset-password.schema'; // Adjust this import path as needed
+} from '@/features/auth/schemas/reset-password.schema';
 
 export default function TokenReset() {
-  const [step, setStep] = React.useState<'token' | 'password' | 'complete'>(
-    'token'
-  );
+  const location = useLocation();
+  const { toast } = useToast();
+  const verifyCodeMutation = useVerifyResetCode();
+  const resetPasswordMutation = useResetPassword();
+  
+  const [step, setStep] = React.useState<'token' | 'password' | 'complete'>('token');
   const [isPasswordVisible, setIsPasswordVisible] = React.useState(false);
-  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
-    React.useState(false);
+  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = React.useState(false);
+  const [verifiedCode, setVerifiedCode] = React.useState<string>('');
+
+  // Get email from navigation state if available (from forgot password page)
+  const emailFromState = location.state?.email;
+  
+  // Log for debugging (can be used to pre-fill email field in future)
+  React.useEffect(() => {
+    if (emailFromState) {
+      console.log("Email from forgot password:", emailFromState);
+    }
+  }, [emailFromState]);
 
   // Form for Step 1: Verify Code
   const {
@@ -68,15 +84,45 @@ export default function TokenReset() {
   });
 
   const onSubmitToken = async (data: VerifyResetCodeFormData) => {
-    console.log('Reset Code:', data);
-    // TODO: Call your API to verify code
-    setStep('password');
+    try {
+      await verifyCodeMutation.mutateAsync({ code: data.code });
+      
+      // Store the verified code for use in password reset
+      setVerifiedCode(data.code);
+      
+      toast({
+        title: "Code verified",
+        description: "You can now set your new password.",
+      });
+      
+      setStep('password');
+    } catch (error: any) {
+      toast({
+        title: "Verification failed",
+        description: error.response?.data?.message || "Invalid or expired reset code.",
+        variant: "destructive",
+      });
+    }
   };
 
   const onSubmitPassword = async (data: ResetPasswordFormData) => {
-    console.log('New Password Data:', data);
-    // TODO: Call your API to reset password
-    setStep('complete');
+    try {
+      // Backend expects: { code, password, confirmPassword }
+      await resetPasswordMutation.mutateAsync({
+        code: verifiedCode,
+        password: data.password,
+        confirmPassword: data.confirmPassword,
+      });
+      
+      // Navigation to login handled by useResetPassword hook
+      // No need to manually navigate or show toast here
+    } catch (error: any) {
+      toast({
+        title: "Password reset failed",
+        description: error.response?.data?.message || "An error occurred. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const togglePasswordVisibility = () => {
@@ -184,8 +230,12 @@ export default function TokenReset() {
                   </FieldDescription>
                 </Field>
               </FieldGroup>
-              <Button type="submit" className="w-full" disabled={isSubmittingCode}>
-                {isSubmittingCode ? 'Verifying...' : 'Verify Code'}
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isSubmittingCode || verifyCodeMutation.isPending}
+              >
+                {isSubmittingCode || verifyCodeMutation.isPending ? 'Verifying...' : 'Verify Code'}
                 <ArrowRightIcon className="ml-2 h-4 w-4" />
               </Button>
             </form>
@@ -276,8 +326,12 @@ export default function TokenReset() {
                 </Field>
               </FieldGroup>
 
-              <Button type="submit" className="w-full" disabled={isSubmittingPassword}>
-                {isSubmittingPassword ? 'Resetting...' : 'Reset Password'}
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isSubmittingPassword || resetPasswordMutation.isPending}
+              >
+                {isSubmittingPassword || resetPasswordMutation.isPending ? 'Resetting...' : 'Reset Password'}
               </Button>
             </form>
           )}

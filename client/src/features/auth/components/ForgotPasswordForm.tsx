@@ -12,9 +12,13 @@ import {
   forgotPasswordSchema,
   type ForgotPasswordFormData,
 } from '@/features/auth/schemas/forgot-password.schema'
+import { useForgotPassword } from '@/features/auth/hooks/useForgotPassword'
+import { useToast } from '@/hooks/use-toast'
 
 const ForgotPasswordForm = () => {
   const navigate = useNavigate()
+  const { toast } = useToast()
+  const forgotPasswordMutation = useForgotPassword()
 
   const {
     register,
@@ -25,12 +29,23 @@ const ForgotPasswordForm = () => {
   })
 
   const onSubmit = async (data: ForgotPasswordFormData) => {
-    console.log('Forgot Password Request Data:', data)
-    
-    // 1. Call your API here (e.g., await sendResetEmail(data))
-    
-    // 2. Navigate to reset password page on success
-    navigate(ROUTES.RESET_PASSWORD)
+    try {
+      await forgotPasswordMutation.mutateAsync(data)
+      
+      toast({
+        title: "Reset code sent",
+        description: "Check your email for the password reset code.",
+      })
+      
+      // Navigate to reset password page with email in state
+      navigate(ROUTES.RESET_PASSWORD, { state: { email: data.email } })
+    } catch (error: any) {
+      toast({
+        title: "Failed to send reset code",
+        description: error.response?.data?.message || "An error occurred. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
@@ -55,8 +70,12 @@ const ForgotPasswordForm = () => {
 
         {/* Submit Button */}
         <Field>
-          <Button className='w-full' type='submit' disabled={isSubmitting}>
-            {isSubmitting ? 'Sending...' : 'Send Reset Link'}
+          <Button 
+            className='w-full' 
+            type='submit' 
+            disabled={isSubmitting || forgotPasswordMutation.isPending}
+          >
+            {isSubmitting || forgotPasswordMutation.isPending ? 'Sending...' : 'Send Reset Code'}
           </Button>
         </Field>
       </FieldGroup>

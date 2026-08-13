@@ -22,6 +22,8 @@ export interface RegisterRequest {
   lastName: string;
   email: string;
   password: string;
+  organizationName: string;
+  organizationSlug: string;
 }
 
 export interface ForgotPasswordRequest {
@@ -29,12 +31,10 @@ export interface ForgotPasswordRequest {
 }
 
 export interface VerifyResetCodeRequest {
-  email: string;
   code: string;
 }
 
 export interface ResetPasswordRequest {
-  email: string;
   code: string;
   password: string;
   confirmPassword: string;
