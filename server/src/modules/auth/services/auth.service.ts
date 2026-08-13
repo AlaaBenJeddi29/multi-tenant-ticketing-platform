@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import type { RegisterDto } from "../dto/register.dto.js";
 import { signAccessToken } from "../../../lib/jwt.js";
 import { AppError } from "../../../lib/AppError.js"; 
+import { emailService } from "../../../lib/email/index.js";
 import {
   findUserByEmail,
   findOrganizationBySlug,
@@ -117,10 +118,28 @@ export async function forgotPassword(email: string) {
     expires
   );
 
-  console.log("================================");
-  console.log("PASSWORD RESET CODE");
-  console.log(code);
-  console.log("================================");
+  // Send password reset email
+  const subject = "Password Reset Code";
+  const body = `Hello ${user.firstName},
+
+You requested a password reset for your account.
+
+Your password reset code is: ${code}
+
+This code will expire in 15 minutes.
+
+If you did not request a password reset, please ignore this email.
+
+Best regards,
+The Support Team`;
+
+  try {
+    await emailService.send(user.email, subject, body);
+  } catch (error) {
+    console.error("Failed to send password reset email:", error);
+    // Don't throw - we don't want to reveal whether the email exists
+    // The code is still saved in the database and can be used
+  }
 }
 
 export async function verifyResetCode(code: string) {

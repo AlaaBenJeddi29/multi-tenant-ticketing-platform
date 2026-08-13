@@ -11,6 +11,7 @@ import categoriesRoutes from "./modules/categories/routes/categories.routes.js";
 
 // Middleware Imports
 import { errorHandler } from "./middleware/error.middleware.js";
+import { generalApiRateLimiter } from "./middleware/rate-limit.middleware.js";
 import { AppError } from "./lib/AppError.js";
 import prioritiesRoutes from "./modules/priorities/routes/priorities.routes.js";
 import assetsRoutes from "./modules/assets/routes/assets.routes.js";
@@ -39,6 +40,9 @@ app.use(
 // 2. Body Parsers
 app.use(express.json());
 app.use(cookieParser());
+
+// 2.5 General Rate Limiting for all API routes
+app.use("/api", generalApiRateLimiter);
 
 // 3. API Routes
 app.use("/api/auth", authRoutes);
