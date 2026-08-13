@@ -9,8 +9,6 @@ import {
   Clock,
   Zap,
   UserCog,
-  // Placeholder imports for future links:
-  // Bell,
   LogOut,
 } from "lucide-react";
 
@@ -18,6 +16,7 @@ import { useAuth } from "@/features/auth/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useLogout } from "@/features/auth/hooks/useLogout";
+import { NotificationBell } from "@/features/notifications";
 
 import { cn } from "@/lib/utils";
 
@@ -141,19 +140,22 @@ export function AppSidebar() {
 
       {/* User section */}
       <div className="border-t border-sidebar-border p-4">
-        <div className="mb-3 flex items-center gap-3 px-2">
-          <div className="flex size-8 items-center justify-center rounded-full bg-sidebar-primary text-sm font-medium text-sidebar-primary-foreground">
-            {user?.firstName?.[0]}
-            {user?.lastName?.[0]}
+        <div className="mb-3 flex items-center justify-between px-2">
+          <div className="flex items-center gap-3">
+            <div className="flex size-8 items-center justify-center rounded-full bg-sidebar-primary text-sm font-medium text-sidebar-primary-foreground">
+              {user?.firstName?.[0]}
+              {user?.lastName?.[0]}
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <p className="truncate text-sm font-medium text-sidebar-foreground">
+                {user?.firstName} {user?.lastName}
+              </p>
+              <p className="truncate text-xs text-sidebar-foreground/60">
+                {user?.email}
+              </p>
+            </div>
           </div>
-          <div className="flex-1 overflow-hidden">
-            <p className="truncate text-sm font-medium text-sidebar-foreground">
-              {user?.firstName} {user?.lastName}
-            </p>
-            <p className="truncate text-xs text-sidebar-foreground/60">
-              {user?.email}
-            </p>
-          </div>
+          <NotificationBell />
         </div>
 
         <Separator className="mb-3" />

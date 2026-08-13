@@ -22,6 +22,7 @@ import RequireAuth from "@/features/auth/components/RequireAuth";
 import { SlasPage } from "@/features/sla";
 import { AutomationPage } from "@/features/automation";
 import { UsersPage } from "@/features/users";
+import { NotificationsPage } from "@/features/notifications";
 
 import { ROUTES } from "./routes";
 
@@ -58,6 +59,7 @@ const router = createBrowserRouter([
               { path: ROUTES.SLAS, element: <SlasPage /> },
               { path: ROUTES.AUTOMATION, element: <AutomationPage /> },
               { path: ROUTES.USERS, element: <UsersPage /> },
+              { path: ROUTES.NOTIFICATIONS, element: <NotificationsPage /> },
             ],
           },
         ],

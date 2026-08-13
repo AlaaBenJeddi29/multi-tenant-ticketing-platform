@@ -18,7 +18,5 @@ export const ROUTES = {
   TICKET_DETAIL: "/tickets/:id",
   AUTOMATION: "/automation",
   USERS: "/users",
-  
-  // To be added in later phases:
-  // NOTIFICATIONS: "/notifications",
+  NOTIFICATIONS: "/notifications",
 } as const;
