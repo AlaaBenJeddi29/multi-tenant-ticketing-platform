@@ -7,6 +7,7 @@ export const ROUTES = {
   VERIFY_RESET_CODE: "/verify-reset-code",
   RESET_PASSWORD: "/reset-password",
   SLAS: "/slas",
+  FORBIDDEN: "/forbidden",
   //Later with backend RESET_PASSWORD: "/reset-password/:token",
   
   // Protected routes

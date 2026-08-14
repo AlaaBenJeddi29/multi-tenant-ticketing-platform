@@ -19,7 +19,9 @@ import TicketsListPage from "@/features/tickets/pages/TicketsListPage";
 import CreateTicketPage from "@/features/tickets/pages/CreateTicketPage";
 import TicketDetailPage from "@/features/tickets/pages/TicketDetailPage";
 import NotFoundPage from "@/features/errors/pages/NotFoundPage";
+import ForbiddenPage from "@/features/errors/pages/ForbiddenPage";
 import RequireAuth from "@/features/auth/components/RequireAuth";
+import RequireRole from "@/features/auth/components/RequireRole";
 import { SlasPage } from "@/features/sla";
 import { AutomationPage } from "@/features/automation";
 import { UsersPage } from "@/features/users";
@@ -59,13 +61,21 @@ const router = createBrowserRouter([
               { path: ROUTES.TICKET_NEW, element: <CreateTicketPage /> },
               { path: ROUTES.TICKET_DETAIL, element: <TicketDetailPage /> },
               { path: ROUTES.SLAS, element: <SlasPage /> },
-              { path: ROUTES.AUTOMATION, element: <AutomationPage /> },
-              { path: ROUTES.USERS, element: <UsersPage /> },
               { path: ROUTES.NOTIFICATIONS, element: <NotificationsPage /> },
+              // ORG_ADMIN-only routes
+              {
+                element: <RequireRole roles={["ORG_ADMIN"]} />,
+                children: [
+                  { path: ROUTES.AUTOMATION, element: <AutomationPage /> },
+                  { path: ROUTES.USERS, element: <UsersPage /> },
+                ],
+              },
             ],
           },
         ],
       },
+      // Error pages
+      { path: ROUTES.FORBIDDEN, element: <ForbiddenPage /> },
       // 404 catch-all
       { path: "*", element: <NotFoundPage /> },
     ],

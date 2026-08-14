@@ -1,9 +1,7 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/features/auth/context/AuthContext";
 import { useUsersList } from "../hooks/useUsersList";
 import { UsersTable } from "../components/UsersTable";
 import { CreateUserDialog } from "../components/CreateUserDialog";
@@ -13,15 +11,9 @@ import type { User, UserRole } from "../types/user.types";
 
 /**
  * Users page - ORG_ADMIN only
- * Redirects AGENT and other roles to dashboard
+ * Access control is enforced at the route level via RequireRole
  */
 export default function UsersPage() {
-  const { user } = useAuth();
-
-  // Role-based access control - ORG_ADMIN only
-  if (user?.role !== "ORG_ADMIN" && user?.role !== "SUPER_ADMIN") {
-    return <Navigate to="/dashboard" replace />;
-  }
 
   // State for query parameters
   const [page, setPage] = useState(1);
