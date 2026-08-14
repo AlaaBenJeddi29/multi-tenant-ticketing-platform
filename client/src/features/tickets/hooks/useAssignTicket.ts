@@ -1,4 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import type { AxiosError } from "axios";
 import { assignTicket } from "../api/ticket.api";
 import { ticketKeys } from "../api/ticket.queryKeys";
 import type { Ticket, AssignTicketInput } from "../types/ticket.types";
@@ -37,7 +39,9 @@ export function useAssignTicket() {
     },
 
     // Rollback on error
-    onError: (_err, { id }, context) => {
+    onError: (error: AxiosError<{ message?: string }>, { id }, context) => {
+      const message = error.response?.data?.message || "Failed to assign ticket.";
+      toast.error(message);
       if (context?.previousTicket) {
         queryClient.setQueryData(ticketKeys.detail(id), context.previousTicket);
       }
@@ -45,6 +49,7 @@ export function useAssignTicket() {
 
     // Refetch on success to get full updated data
     onSuccess: () => {
+      toast.success("Ticket assigned.");
       queryClient.invalidateQueries({ queryKey: ticketKeys.all });
     },
   });

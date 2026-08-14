@@ -1,4 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import type { AxiosError } from "axios";
 import { activateSla } from "../api/sla.api";
 import { slaKeys } from "../api/sla.queryKeys";
 
@@ -12,7 +14,12 @@ export function useActivateSla() {
   return useMutation({
     mutationFn: (id: string) => activateSla(id),
     onSuccess: () => {
+      toast.success("SLA activated.");
       queryClient.invalidateQueries({ queryKey: slaKeys.all });
+    },
+    onError: (error: AxiosError<{ message?: string }>) => {
+      const message = error.response?.data?.message || "Failed to activate SLA.";
+      toast.error(message);
     },
   });
 }

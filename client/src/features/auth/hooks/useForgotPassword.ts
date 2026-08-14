@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import { forgotPassword as forgotPasswordRequest } from "../api/auth.api";
 
@@ -7,7 +8,7 @@ export function useForgotPassword() {
     mutationFn: forgotPasswordRequest,
 
     onSuccess: () => {
-      console.log("Password reset email sent");
+      toast.success("If an account exists, a reset code has been sent.");
     },
 
     onError: (error) => {

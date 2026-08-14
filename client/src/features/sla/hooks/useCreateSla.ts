@@ -1,4 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import type { AxiosError } from "axios";
 import { createSla } from "../api/sla.api";
 import { slaKeys } from "../api/sla.queryKeys";
 import type { CreateSlaInput } from "../types/sla.types";
@@ -13,8 +15,12 @@ export function useCreateSla() {
   return useMutation({
     mutationFn: (input: CreateSlaInput) => createSla(input),
     onSuccess: () => {
-      // Invalidate all SLA queries to refetch lists
+      toast.success("SLA created.");
       queryClient.invalidateQueries({ queryKey: slaKeys.all });
+    },
+    onError: (error: AxiosError<{ message?: string }>) => {
+      const message = error.response?.data?.message || "Failed to create SLA.";
+      toast.error(message);
     },
   });
 }

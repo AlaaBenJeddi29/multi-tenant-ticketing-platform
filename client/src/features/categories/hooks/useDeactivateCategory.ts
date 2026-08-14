@@ -1,4 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import type { AxiosError } from "axios";
 import { deactivateCategory } from "../api/category.api";
 import { categoryKeys } from "../api/category.queryKeys";
 
@@ -12,7 +14,12 @@ export function useDeactivateCategory() {
   return useMutation({
     mutationFn: (id: string) => deactivateCategory(id),
     onSuccess: () => {
+      toast.success("Category deactivated.");
       queryClient.invalidateQueries({ queryKey: categoryKeys.all });
+    },
+    onError: (error: AxiosError<{ message?: string }>) => {
+      const message = error.response?.data?.message || "Failed to deactivate category.";
+      toast.error(message);
     },
   });
 }

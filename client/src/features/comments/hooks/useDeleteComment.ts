@@ -1,4 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import type { AxiosError } from "axios";
 import { deleteComment } from "../api/comment.api";
 import { ticketKeys } from "@/features/tickets/api/ticket.queryKeys";
 
@@ -15,8 +17,12 @@ export function useDeleteComment(ticketId: string) {
   return useMutation({
     mutationFn: (commentId: string) => deleteComment(commentId),
     onSuccess: () => {
-      // Invalidate ticket detail to refresh the embedded comments array
+      toast.success("Comment deleted.");
       queryClient.invalidateQueries({ queryKey: ticketKeys.detail(ticketId) });
+    },
+    onError: (error: AxiosError<{ message?: string }>) => {
+      const message = error.response?.data?.message || "Failed to delete comment.";
+      toast.error(message);
     },
   });
 }

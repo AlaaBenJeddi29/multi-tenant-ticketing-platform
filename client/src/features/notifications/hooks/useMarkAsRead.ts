@@ -1,4 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import type { AxiosError } from "axios";
 import { markNotificationAsRead } from "../api/notification.api";
 import { notificationKeys } from "../api/notification.queryKeys";
 
@@ -12,9 +14,12 @@ export function useMarkAsRead() {
   return useMutation({
     mutationFn: markNotificationAsRead,
     onSuccess: () => {
-      // Invalidate notification lists and unread count
       queryClient.invalidateQueries({ queryKey: notificationKeys.lists() });
       queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() });
+    },
+    onError: (error: AxiosError<{ message?: string }>) => {
+      const message = error.response?.data?.message || "Failed to mark notification as read.";
+      toast.error(message);
     },
   });
 }

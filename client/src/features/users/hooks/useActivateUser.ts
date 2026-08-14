@@ -1,4 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import type { AxiosError } from "axios";
 import { activateUser } from "../api/user.api";
 import { userKeys } from "../api/user.queryKeys";
 
@@ -13,7 +15,12 @@ export function useActivateUser() {
   return useMutation({
     mutationFn: (id: string) => activateUser(id),
     onSuccess: () => {
+      toast.success("User activated.");
       queryClient.invalidateQueries({ queryKey: userKeys.all });
+    },
+    onError: (error: AxiosError<{ message?: string }>) => {
+      const message = error.response?.data?.message || "Failed to activate user.";
+      toast.error(message);
     },
   });
 }

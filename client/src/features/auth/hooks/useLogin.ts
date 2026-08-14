@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate, useLocation } from "react-router-dom";
+import { toast } from "sonner";
 
 import { login as loginRequest } from "../api/auth.api";
 import { useAuth } from "../context/AuthContext";
@@ -22,8 +23,8 @@ export function useLogin() {
       navigate(destination, { replace: true });
     },
 
-    onError: (error) => {
-      console.error(error);
+    onError: () => {
+      toast.error("Invalid email or password.");
     },
   });
 }

@@ -1,4 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import type { AxiosError } from "axios";
 import { deleteNotification } from "../api/notification.api";
 import { notificationKeys } from "../api/notification.queryKeys";
 
@@ -12,9 +14,13 @@ export function useDeleteNotification() {
   return useMutation({
     mutationFn: deleteNotification,
     onSuccess: () => {
-      // Invalidate notification lists and unread count
+      toast.success("Notification deleted.");
       queryClient.invalidateQueries({ queryKey: notificationKeys.lists() });
       queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() });
+    },
+    onError: (error: AxiosError<{ message?: string }>) => {
+      const message = error.response?.data?.message || "Failed to delete notification.";
+      toast.error(message);
     },
   });
 }
