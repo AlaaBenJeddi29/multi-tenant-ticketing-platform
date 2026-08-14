@@ -30,7 +30,7 @@ export default function NotificationsPage() {
   const deleteNotificationMutation = useDeleteNotification();
 
   const unreadCount = unreadData?.count ?? 0;
-  const notifications = data?.data ?? [];
+  const notifications = Array.isArray(data?.data) ? data.data : [];
   const meta = data?.meta ?? {
     page: 1,
     pageSize,

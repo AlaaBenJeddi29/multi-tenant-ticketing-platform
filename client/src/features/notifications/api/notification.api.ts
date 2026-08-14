@@ -15,24 +15,27 @@ const BASE_URL = "/notifications";
 export async function getNotifications(
   params: NotificationListParams
 ): Promise<NotificationsResponse> {
-  const response = await api.get<NotificationsResponse>(BASE_URL, { params });
-  return response.data;
+  const response = await api.get<{ success: boolean; data: NotificationsResponse }>(BASE_URL, { params });
+  return response.data.data;
 }
 
 /**
  * Get unread notification count
  */
 export async function getUnreadCount(): Promise<UnreadCountResponse> {
-  const response = await api.get<UnreadCountResponse>(`${BASE_URL}/unread`);
-  return response.data;
+  const response = await api.get<{ success: boolean; data: { unread: number } }>(`${BASE_URL}/unread`);
+  return { count: response.data.data.unread };
 }
 
 /**
  * Mark a single notification as read
  */
 export async function markNotificationAsRead(id: string): Promise<Notification> {
-  const response = await api.patch<Notification>(`${BASE_URL}/${id}/read`);
-  return response.data;
+  const response = await api.patch<{ success: boolean; data: Notification }>(
+    `${BASE_URL}/${id}/read`,
+    { isRead: true }
+  );
+  return response.data.data;
 }
 
 /**

@@ -39,7 +39,9 @@ export function NotificationBell() {
   const deleteNotificationMutation = useDeleteNotification();
 
   const unreadCount = unreadData?.count ?? 0;
-  const notifications = notificationsData?.data ?? [];
+  const notifications = Array.isArray(notificationsData?.data) 
+    ? notificationsData.data 
+    : [];
 
   const handleMarkAsRead = (id: string) => {
     markAsReadMutation.mutate(id);
