@@ -10,6 +10,8 @@ import {
   Zap,
   UserCog,
   LogOut,
+  Shield,
+  History,
 } from "lucide-react";
 
 import { useAuth } from "@/features/auth/context/AuthContext";
@@ -73,13 +75,25 @@ export function AppSidebar() {
       to: "/automation",
       icon: Zap,
       label: "Automation",
-      allowedRoles: ["SUPER_ADMIN", "ORG_ADMIN"],
+      allowedRoles: ["ORG_ADMIN"],
+    },
+    {
+      to: "/automation/executions",
+      icon: History,
+      label: "Execution History",
+      allowedRoles: ["ORG_ADMIN"],
     },
     {
       to: "/users",
       icon: UserCog,
       label: "Users",
-      allowedRoles: ["SUPER_ADMIN", "ORG_ADMIN"],
+      allowedRoles: ["ORG_ADMIN"],
+    },
+    {
+      to: "/admin/organizations",
+      icon: Shield,
+      label: "Admin Panel",
+      allowedRoles: ["SUPER_ADMIN"],
     },
     // ==========================================
     // PLACEHOLDER LINKS - TO BE ADDED IN LATER PHASES

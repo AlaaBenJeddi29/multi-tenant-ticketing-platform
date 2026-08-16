@@ -11,6 +11,7 @@ import {
   getAutomationRule,
   getAutomationRules,
   updateAutomationRule,
+  getAutomationExecutions,
 } from "../controllers/automation.controller.js";
 
 const router = Router();
@@ -21,6 +22,12 @@ router.get(
   "/",
   authorize("ORG_ADMIN"),
   getAutomationRules
+);
+
+router.get(
+  "/executions",
+  authorize("ORG_ADMIN"),
+  getAutomationExecutions
 );
 
 router.get(

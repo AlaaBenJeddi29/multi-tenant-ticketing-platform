@@ -81,3 +81,12 @@ export async function updateTicketStatus(
 export async function deleteTicket(id: string): Promise<void> {
   await api.delete(`${BASE_URL}/${id}`);
 }
+
+/**
+ * Claim a ticket for the current user
+ * Available to ORG_ADMIN and AGENT
+ */
+export async function claimTicket(id: string): Promise<Ticket> {
+  const response = await api.patch<Ticket>(`${BASE_URL}/${id}/claim`);
+  return response.data;
+}

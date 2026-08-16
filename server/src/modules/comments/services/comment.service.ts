@@ -1,5 +1,7 @@
 import { AppError } from "../../../lib/AppError.js";
 
+import { prisma } from "../../../lib/prisma.js";
+
 import type { CreateCommentDto } from "../dto/create-comment.dto.js";
 
 import type { UpdateCommentDto } from "../dto/update-comment.dto.js";
@@ -60,6 +62,10 @@ export async function createNewComment(
     throw new AppError(404, "Ticket not found.");
   }
 
+  const existingCommentCount = await prisma.ticketComment.count({
+    where: { ticketId },
+  });
+
   const comment = await createComment({
     content: dto.content,
 
@@ -75,6 +81,13 @@ export async function createNewComment(
       },
     },
   });
+
+  if (existingCommentCount === 0 && (comment.author.role === "AGENT" || comment.author.role === "ORG_ADMIN")) {
+    await prisma.ticket.update({
+      where: { id: ticketId },
+      data: { firstRespondedAt: new Date() },
+    });
+  }
 
   await processFirstResponse(
     ticket.id,

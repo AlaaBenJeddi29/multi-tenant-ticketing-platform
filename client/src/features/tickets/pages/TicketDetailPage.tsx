@@ -16,6 +16,7 @@ import { useAuth } from "@/features/auth/context/AuthContext";
 import { useTicket } from "../hooks/useTicket";
 import { useUpdateTicketStatus } from "../hooks/useUpdateTicketStatus";
 import { useAssignTicket } from "../hooks/useAssignTicket";
+import { useClaimTicket } from "../hooks/useClaimTicket";
 import { useUsersList } from "@/features/users/hooks/useUsersList";
 import { CommentThread } from "@/features/comments";
 
@@ -41,6 +42,7 @@ export default function TicketDetailPage() {
   const { data: ticket, isLoading } = useTicket(id!);
   const updateStatusMutation = useUpdateTicketStatus();
   const assignMutation = useAssignTicket();
+  const claimMutation = useClaimTicket();
 
   // Fetch users for assignee dropdown
   const { data: usersData } = useUsersList({
@@ -60,6 +62,12 @@ export default function TicketDetailPage() {
   const handleAssignChange = (assignedToId: string) => {
     if (ticket) {
       assignMutation.mutate({ id: ticket.id, input: { assignedToId } });
+    }
+  };
+
+  const handleClaimTicket = () => {
+    if (ticket) {
+      claimMutation.mutate(ticket.id);
     }
   };
 
@@ -226,6 +234,17 @@ export default function TicketDetailPage() {
                 </SelectContent>
               </Select>
             </div>
+          )}
+
+          {/* Claim Ticket Button (AGENT only, when unassigned) */}
+          {user?.role === "AGENT" && !ticket.assignedTo && (
+            <Button
+              onClick={handleClaimTicket}
+              disabled={claimMutation.isPending}
+              className="w-full"
+            >
+              {claimMutation.isPending ? "Claiming..." : "Claim Ticket"}
+            </Button>
           )}
 
           {/* Ticket Details */}

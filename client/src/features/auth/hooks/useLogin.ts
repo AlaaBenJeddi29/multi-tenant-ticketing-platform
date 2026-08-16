@@ -17,9 +17,20 @@ export function useLogin() {
     onSuccess: (response) => {
       auth.setUser(response.user);
 
-      // Redirect back to where RequireAuth intercepted them, or to dashboard
+      // Redirect SUPER_ADMIN to admin panel, others to dashboard
+      // Or redirect back to where RequireAuth intercepted them
       const state = location.state as { from?: { pathname: string } } | null;
-      const destination = state?.from?.pathname ?? ROUTES.DASHBOARD;
+      const interceptedPath = state?.from?.pathname;
+
+      let destination: string;
+      if (interceptedPath) {
+        destination = interceptedPath;
+      } else if (response.user.role === "SUPER_ADMIN") {
+        destination = ROUTES.ADMIN_DASHBOARD;
+      } else {
+        destination = ROUTES.DASHBOARD;
+      }
+
       navigate(destination, { replace: true });
     },
 

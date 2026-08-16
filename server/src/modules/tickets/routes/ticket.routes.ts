@@ -11,6 +11,7 @@ import {
   assignTicket,
   updateTicketStatus,
   deleteTicket,
+  claimTicket,
 } from "../controllers/ticket.controller.js";
 
 const router = Router();
@@ -45,6 +46,12 @@ router.patch(
   "/:id/assign",
   authorize("ORG_ADMIN"),
   assignTicket
+);
+
+router.patch(
+  "/:id/claim",
+  authorize("ORG_ADMIN", "AGENT"),
+  claimTicket
 );
 
 router.patch(

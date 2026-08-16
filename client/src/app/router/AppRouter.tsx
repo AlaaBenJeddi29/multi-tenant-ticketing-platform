@@ -10,6 +10,7 @@ import RegisterPage from "@/features/auth/pages/RegisterPage";
 import ForgotPasswordPage from "@/features/auth/pages/ForgotPasswordPage";
 import VerifyResetCodePage from "@/features/auth/pages/VerifyResetCodePage";
 import ResetPasswordPage from "@/features/auth/pages/ResetPasswordPage";
+import SubmitRequestPage from "@/features/public/pages/SubmitRequestPage";
 import DashboardPage from "@/features/dashboard/pages/DashboardPage";
 import CategoriesPage from "@/features/categories/pages/CategoriesPage";
 import PrioritiesPage from "@/features/priorities/pages/PrioritiesPage";
@@ -24,8 +25,18 @@ import RequireAuth from "@/features/auth/components/RequireAuth";
 import RequireRole from "@/features/auth/components/RequireRole";
 import { SlasPage } from "@/features/sla";
 import { AutomationPage } from "@/features/automation";
+import AutomationExecutionsPage from "@/features/automation/pages/AutomationExecutionsPage";
 import { UsersPage } from "@/features/users";
 import { NotificationsPage } from "@/features/notifications";
+import OrganizationsListPage from "@/features/admin/pages/OrganizationsListPage";
+import OrganizationDetailPage from "@/features/admin/pages/OrganizationDetailPage";
+import AdminLayout from "@/features/admin/components/AdminLayout";
+import AdminDashboardPage from "@/features/admin/pages/AdminDashboardPage";
+import AdminUsersPage from "@/features/admin/pages/AdminUsersPage";
+import AdminAnalyticsPage from "@/features/admin/pages/AdminAnalyticsPage";
+import AdminActivityPage from "@/features/admin/pages/AdminActivityPage";
+import AdminSystemHealthPage from "@/features/admin/pages/AdminSystemHealthPage";
+import AdminSettingsPage from "@/features/admin/pages/AdminSettingsPage";
 
 import { ROUTES } from "./routes";
 
@@ -45,6 +56,8 @@ const router = createBrowserRouter([
           { path: ROUTES.RESET_PASSWORD, element: <ResetPasswordPage /> },
         ],
       },
+      // Standalone public route (no layout)
+      { path: ROUTES.SUBMIT_REQUEST, element: <SubmitRequestPage /> },
       // Protected routes
       {
         element: <RequireAuth />,
@@ -67,7 +80,27 @@ const router = createBrowserRouter([
                 element: <RequireRole roles={["ORG_ADMIN"]} />,
                 children: [
                   { path: ROUTES.AUTOMATION, element: <AutomationPage /> },
+                  { path: ROUTES.AUTOMATION_EXECUTIONS, element: <AutomationExecutionsPage /> },
                   { path: ROUTES.USERS, element: <UsersPage /> },
+                ],
+              },
+              // SUPER_ADMIN-only routes (separate layout)
+              {
+                element: <RequireRole roles={["SUPER_ADMIN"]} />,
+                children: [
+                  {
+                    element: <AdminLayout />,
+                    children: [
+                      { path: ROUTES.ADMIN_DASHBOARD, element: <AdminDashboardPage /> },
+                      { path: ROUTES.ADMIN_ORGANIZATIONS, element: <OrganizationsListPage /> },
+                      { path: ROUTES.ADMIN_ORGANIZATION_DETAIL, element: <OrganizationDetailPage /> },
+                      { path: ROUTES.ADMIN_USERS, element: <AdminUsersPage /> },
+                      { path: ROUTES.ADMIN_ANALYTICS, element: <AdminAnalyticsPage /> },
+                      { path: ROUTES.ADMIN_ACTIVITY, element: <AdminActivityPage /> },
+                      { path: ROUTES.ADMIN_SYSTEM_HEALTH, element: <AdminSystemHealthPage /> },
+                      { path: ROUTES.ADMIN_SETTINGS, element: <AdminSettingsPage /> },
+                    ],
+                  },
                 ],
               },
             ],

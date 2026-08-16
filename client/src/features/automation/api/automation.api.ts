@@ -77,3 +77,14 @@ export async function deactivateAutomationRule(id: string): Promise<AutomationRu
 export async function deleteAutomationRule(id: string): Promise<void> {
   await api.delete(`${BASE_URL}/${id}`);
 }
+
+/**
+ * Get automation execution history
+ * Requires ORG_ADMIN role
+ */
+export async function getAutomationExecutions(
+  params: { page: number; pageSize: number }
+): Promise<{ data: any[]; total: number; page: number; pageSize: number }> {
+  const response = await api.get(`${BASE_URL}/executions`, { params });
+  return response.data;
+}

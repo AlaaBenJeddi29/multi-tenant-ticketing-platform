@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import { startAutomationJobs } from "./modules/automation/jobs/automation.jobs.js";
 // Route Imports
+import publicRoutes from "./modules/public/routes/public.routes.js";
 import authRoutes from "./modules/auth/routes/auth.routes.js";
 import organizationRoutes from "./modules/organization/routes/organization.routes.js";
 import categoriesRoutes from "./modules/categories/routes/categories.routes.js";
@@ -24,6 +25,7 @@ import automationRoutes from "./modules/automation/routes/automation.routes.js";
 import dashboardRoutes from "./modules/dashboard/routes/dashboard.routes.js";
 import usersRoutes from "./modules/users/routes/users.routes.js";
 import notificationRoutes from "./modules/notifications/routes/notification.routes.js";
+import adminRoutes from "./modules/admin/routes/admin.routes.js";
 
 const app = express();
 startAutomationJobs();
@@ -41,7 +43,10 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-// 2.5 General Rate Limiting for all API routes
+// 2.5 Public Routes (no auth, custom rate limiting)
+app.use("/api/public", publicRoutes);
+
+// 2.6 General Rate Limiting for all API routes
 app.use("/api", generalApiRateLimiter);
 
 // 3. API Routes
@@ -58,6 +63,7 @@ app.use("/api/automation", automationRoutes);
 app.use("/api/dashboard",dashboardRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/admin", adminRoutes);
 
 
 

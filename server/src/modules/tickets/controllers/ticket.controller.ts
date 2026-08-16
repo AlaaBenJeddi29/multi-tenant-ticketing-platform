@@ -165,3 +165,21 @@ export async function deleteTicket(
     next(error);
   }
 }
+
+export async function claimTicket(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const ticket = await ticketService.assignTicket(
+      requireParam(req.params.id, "id"),
+      req.user!.organizationId,
+      { assignedToId: req.user!.userId }
+    );
+
+    return res.status(200).json(ticket);
+  } catch (error) {
+    next(error);
+  }
+}

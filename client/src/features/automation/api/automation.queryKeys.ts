@@ -9,6 +9,7 @@ import type { AutomationRuleListParams } from "../types/automation.types";
  * - automationKeys.list(params): Specific list with filters
  * - automationKeys.details(): Invalidates all details
  * - automationKeys.detail(id): Specific automation rule detail
+ * - automationKeys.executions(params): Execution history
  */
 export const automationKeys = {
   all: ["automation"] as const,
@@ -21,4 +22,7 @@ export const automationKeys = {
   details: () => [...automationKeys.all, "detail"] as const,
   
   detail: (id: string) => [...automationKeys.details(), id] as const,
+  
+  executions: (params: { page: number; pageSize: number }) =>
+    [...automationKeys.all, "executions", params] as const,
 };

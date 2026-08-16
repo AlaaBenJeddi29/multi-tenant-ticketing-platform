@@ -8,6 +8,7 @@ export const ROUTES = {
   RESET_PASSWORD: "/reset-password",
   SLAS: "/slas",
   FORBIDDEN: "/forbidden",
+  SUBMIT_REQUEST: "/submit/:organizationSlug",
   //Later with backend RESET_PASSWORD: "/reset-password/:token",
   
   // Protected routes
@@ -19,6 +20,17 @@ export const ROUTES = {
   TICKET_NEW: "/tickets/new",
   TICKET_DETAIL: "/tickets/:id",
   AUTOMATION: "/automation",
+  AUTOMATION_EXECUTIONS: "/automation/executions",
   USERS: "/users",
   NOTIFICATIONS: "/notifications",
+  
+  // Admin routes - SUPER_ADMIN only
+  ADMIN_DASHBOARD: "/admin/dashboard",
+  ADMIN_ORGANIZATIONS: "/admin/organizations",
+  ADMIN_ORGANIZATION_DETAIL: "/admin/organizations/:id",
+  ADMIN_USERS: "/admin/users",
+  ADMIN_ANALYTICS: "/admin/analytics",
+  ADMIN_ACTIVITY: "/admin/activity",
+  ADMIN_SYSTEM_HEALTH: "/admin/system-health",
+  ADMIN_SETTINGS: "/admin/settings",
 } as const;

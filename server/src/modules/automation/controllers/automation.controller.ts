@@ -21,8 +21,16 @@ import {
   listAutomationRulesQuerySchema,
 } from "../dto/list-automation-rules.dto.js";
 
+import {
+  listExecutionsQuerySchema,
+} from "../dto/list-executions.dto.js";
+
 import * as automationService
   from "../services/automation.service.js";
+
+import {
+  findAutomationExecutions,
+} from "../repositories/automation-execution.repository.js";
 
 export async function getAutomationRules(
   req: AuthenticatedRequest,
@@ -177,6 +185,31 @@ export async function deleteAutomationRule(
     return res.status(200).json({
       message:
         "Automation rule deleted successfully.",
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getAutomationExecutions(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const query = listExecutionsQuerySchema.parse(req.query);
+
+    const { items, total } = await findAutomationExecutions(
+      req.user!.organizationId,
+      query.page,
+      query.pageSize
+    );
+
+    return res.status(200).json({
+      data: items,
+      total,
+      page: query.page,
+      pageSize: query.pageSize,
     });
   } catch (error) {
     next(error);

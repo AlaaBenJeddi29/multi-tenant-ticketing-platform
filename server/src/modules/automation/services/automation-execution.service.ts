@@ -9,6 +9,8 @@ import type { AutomationRule, Ticket } from "../../../generated/prisma/client.js
 
 import { createNewNotification } from "../../notifications/services/notification.service.js";
 
+import { emailService } from "../../../lib/email/index.js";
+
 export async function executeAutomationAction(
   ticket: Ticket,
   rule: AutomationRule
@@ -36,8 +38,7 @@ export async function executeAutomationAction(
       return sendNotification(ticket, rule);
 
     case AutomationAction.SEND_EMAIL:
-      // Future milestone
-      return;
+      return sendEmail(ticket, rule);
 
     case AutomationAction.WEBHOOK:
       // Future milestone
@@ -90,11 +91,23 @@ async function addComment(
 ) {
   if (!rule.actionValue) return;
 
+  const orgAdmin = await prisma.user.findFirst({
+    where: {
+      organizationId: ticket.organizationId,
+      role: "ORG_ADMIN",
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  const authorId = orgAdmin?.id || ticket.createdById;
+
   await prisma.ticketComment.create({
     data: {
       ticketId: ticket.id,
       content: rule.actionValue,
-      authorId: ticket.createdById,
+      authorId,
     },
   });
 }
@@ -137,7 +150,7 @@ async function reopenTicket(ticket: Ticket) {
       id: ticket.id,
     },
     data: {
-      status: TicketStatus.IN_PROGRESS,
+      status: TicketStatus.NEW,
       resolvedAt: null,
     },
   });
@@ -156,4 +169,22 @@ async function sendNotification(
     title: "Ticket Automation",
     message: rule.actionValue,
   });
+}
+
+async function sendEmail(
+  ticket: Ticket,
+  rule: AutomationRule
+) {
+  const requester = await prisma.user.findUnique({
+    where: { id: ticket.requesterId },
+    select: { email: true },
+  });
+
+  const to = rule.actionValue || requester?.email;
+  if (!to) return;
+
+  const subject = `Update on your ticket #${ticket.ticketNumber}`;
+  const body = "The status of your ticket has been updated.";
+
+  await emailService.send(to, subject, body);
 }
