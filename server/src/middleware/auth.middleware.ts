@@ -3,7 +3,7 @@ import { verifyAccessToken } from "../lib/jwt.js";
 
 export interface JwtPayload {
   userId: string;
-  organizationId: string;
+  organizationId: string | null;
   role: "SUPER_ADMIN" | "ORG_ADMIN" | "AGENT";
 }
 

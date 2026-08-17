@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 
 export interface JwtPayload {
   userId: string;
-  organizationId: string;
+  organizationId: string | null;
   role: "SUPER_ADMIN" | "ORG_ADMIN" | "AGENT";
 }
 
