@@ -29,7 +29,6 @@ interface SlaTableProps {
   onSearchChange: (search: string) => void;
   onPageChange: (page: number) => void;
   onEditSla: (sla: Sla) => void;
-  prioritiesMap: Record<string, { name: string; color: string }>;
 }
 
 export function SlaTable({
@@ -40,7 +39,6 @@ export function SlaTable({
   onSearchChange,
   onPageChange,
   onEditSla,
-  prioritiesMap,
 }: SlaTableProps) {
   const { user } = useAuth();
   const isAdmin = user?.role === "ORG_ADMIN" || user?.role === "SUPER_ADMIN";
@@ -123,7 +121,7 @@ export function SlaTable({
               </TableRow>
             ) : (
               slas.map((sla) => {
-                const priority = prioritiesMap[sla.priorityId];
+                const priority = sla.priority;
                 return (
                   <TableRow key={sla.id}>
                     <TableCell className="font-medium">{sla.name}</TableCell>
@@ -137,7 +135,7 @@ export function SlaTable({
                           <span>{priority.name}</span>
                         </div>
                       ) : (
-                        "—"
+                        <span className="text-muted-foreground">—</span>
                       )}
                     </TableCell>
                     <TableCell className="text-muted-foreground">

@@ -57,7 +57,7 @@ export function SlaFormDialog({
     const usedPriorityIds = new Set(
       existingSlas
         .filter((existingSla) => existingSla.id !== sla?.id)
-        .map((existingSla) => existingSla.priorityId)
+        .map((existingSla) => existingSla.priority?.id)
     );
 
     return prioritiesData.data.filter(
@@ -90,7 +90,7 @@ export function SlaFormDialog({
       if (sla) {
         reset({
           name: sla.name,
-          priorityId: sla.priorityId,
+          priorityId: sla.priority?.id || "",
           responseTimeMinutes: sla.responseTimeMinutes,
           resolutionTimeMinutes: sla.resolutionTimeMinutes,
         });
@@ -117,6 +117,9 @@ export function SlaFormDialog({
           },
         });
       } else {
+        if (!data.priorityId) {
+          throw new Error("Priority is required");
+        }
         await createMutation.mutateAsync({
           name: data.name,
           priorityId: data.priorityId,

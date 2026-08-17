@@ -1,12 +1,27 @@
 import type { PaginatedResponse } from "@/types/pagination.types";
 
 /**
+ * Priority object embedded in SLA response
+ */
+export interface Priority {
+  id: string;
+  name: string;
+  level: string;
+  color: string;
+  responseTimeMinutes: number;
+  resolutionTimeMinutes: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
  * SLA entity from the backend
  */
 export interface Sla {
   id: string;
   name: string;
-  priorityId: string;
+  priority: Priority;
   responseTimeMinutes: number;
   resolutionTimeMinutes: number;
   isActive: boolean;

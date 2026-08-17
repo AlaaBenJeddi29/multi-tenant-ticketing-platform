@@ -1,10 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { useSlas } from "../hooks/useSlas";
-import { usePriorities } from "@/features/priorities/hooks/usePriorities";
 import { SlaTable } from "../components/SlaTable";
 import { SlaFormDialog } from "../components/SlaFormDialog";
 
@@ -30,25 +29,6 @@ export default function SlasPage() {
     sortOrder: "asc",
     search: search || undefined,
   });
-
-  // Fetch priorities for display
-  const { data: prioritiesData } = usePriorities({ isActive: true, pageSize: 100 });
-
-  // Create a map of priorities for quick lookup
-  const prioritiesMap = useMemo(() => {
-    if (!prioritiesData?.data) return {};
-    
-    return prioritiesData.data.reduce(
-      (acc, priority) => {
-        acc[priority.id] = {
-          name: priority.name,
-          color: priority.color,
-        };
-        return acc;
-      },
-      {} as Record<string, { name: string; color: string }>
-    );
-  }, [prioritiesData]);
 
   const handleNewSla = () => {
     setSelectedSla(null);
@@ -103,7 +83,6 @@ export default function SlasPage() {
         onSearchChange={handleSearchChange}
         onPageChange={handlePageChange}
         onEditSla={handleEditSla}
-        prioritiesMap={prioritiesMap}
       />
 
       {/* Form Dialog */}

@@ -13,8 +13,7 @@ export const slaFormSchema = z.object({
 
   priorityId: z
     .string()
-    .min(1, "Priority is required")
-    .regex(/^[a-z0-9]+$/, "Invalid priority ID"),
+    .optional(),
 
   responseTimeMinutes: z
     .number()
