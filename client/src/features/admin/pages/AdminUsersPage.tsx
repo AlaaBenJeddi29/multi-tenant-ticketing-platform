@@ -159,23 +159,29 @@ export default function AdminUsersPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Link
-                        to={`/admin/organizations/${user.organization.id}`}
-                        className="text-primary hover:underline"
-                      >
-                        {user.organization.name}
-                      </Link>
+                      {user.organization ? (
+                        <Link
+                          to={`/admin/organizations/${user.organization.id}`}
+                          className="text-primary hover:underline"
+                        >
+                          {user.organization.name}
+                        </Link>
+                      ) : (
+                        <Badge className="bg-purple-500 hover:bg-purple-600">Platform</Badge>
+                      )}
                     </TableCell>
                     <TableCell>
                       <Badge
-                        variant={user.role === "ORG_ADMIN" ? "default" : "secondary"}
+                        variant={user.role === "ORG_ADMIN" ? "default" : user.role === "SUPER_ADMIN" ? "default" : "secondary"}
                         className={
                           user.role === "ORG_ADMIN"
                             ? "bg-blue-500 hover:bg-blue-600"
+                            : user.role === "SUPER_ADMIN"
+                            ? "bg-purple-600 hover:bg-purple-700"
                             : ""
                         }
                       >
-                        {user.role === "ORG_ADMIN" ? "Org Admin" : "Agent"}
+                        {user.role === "ORG_ADMIN" ? "Org Admin" : user.role === "SUPER_ADMIN" ? "Super Admin" : "Agent"}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -188,14 +194,16 @@ export default function AdminUsersPage() {
                     <TableCell>{formatLastLogin(user.lastLoginAt)}</TableCell>
                     <TableCell>{formatDate(user.createdAt)}</TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant={user.isActive ? "destructive" : "default"}
-                        size="sm"
-                        onClick={() => handleToggleActive(user.id, user.isActive)}
-                        disabled={toggleUserActiveMutation.isPending}
-                      >
-                        {user.isActive ? "Deactivate" : "Activate"}
-                      </Button>
+                      {user.role !== "SUPER_ADMIN" && (
+                        <Button
+                          variant={user.isActive ? "destructive" : "default"}
+                          size="sm"
+                          onClick={() => handleToggleActive(user.id, user.isActive)}
+                          disabled={toggleUserActiveMutation.isPending}
+                        >
+                          {user.isActive ? "Deactivate" : "Activate"}
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

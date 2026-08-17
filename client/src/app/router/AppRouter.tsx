@@ -62,43 +62,49 @@ const router = createBrowserRouter([
       {
         element: <RequireAuth />,
         children: [
+          // SUPER_ADMIN-only routes (standalone AdminLayout, no ProtectedLayout)
           {
-            element: <ProtectedLayout />,
+            element: <RequireRole roles={["SUPER_ADMIN"]} />,
             children: [
-              { path: ROUTES.DASHBOARD, element: <DashboardPage /> },
-              { path: ROUTES.CATEGORIES, element: <CategoriesPage /> },
-              { path: ROUTES.PRIORITIES, element: <PrioritiesPage /> },
-              { path: ROUTES.ASSETS, element: <AssetsPage /> },
-              { path: ROUTES.REQUESTERS, element: <RequestersPage /> },
-              { path: ROUTES.TICKETS, element: <TicketsListPage /> },
-              { path: ROUTES.TICKET_NEW, element: <CreateTicketPage /> },
-              { path: ROUTES.TICKET_DETAIL, element: <TicketDetailPage /> },
-              { path: ROUTES.SLAS, element: <SlasPage /> },
-              { path: ROUTES.NOTIFICATIONS, element: <NotificationsPage /> },
-              // ORG_ADMIN-only routes
               {
-                element: <RequireRole roles={["ORG_ADMIN"]} />,
+                element: <AdminLayout />,
                 children: [
-                  { path: ROUTES.AUTOMATION, element: <AutomationPage /> },
-                  { path: ROUTES.AUTOMATION_EXECUTIONS, element: <AutomationExecutionsPage /> },
-                  { path: ROUTES.USERS, element: <UsersPage /> },
+                  { path: ROUTES.ADMIN_DASHBOARD, element: <AdminDashboardPage /> },
+                  { path: ROUTES.ADMIN_ORGANIZATIONS, element: <OrganizationsListPage /> },
+                  { path: ROUTES.ADMIN_ORGANIZATION_DETAIL, element: <OrganizationDetailPage /> },
+                  { path: ROUTES.ADMIN_USERS, element: <AdminUsersPage /> },
+                  { path: ROUTES.ADMIN_ANALYTICS, element: <AdminAnalyticsPage /> },
+                  { path: ROUTES.ADMIN_ACTIVITY, element: <AdminActivityPage /> },
+                  { path: ROUTES.ADMIN_SYSTEM_HEALTH, element: <AdminSystemHealthPage /> },
+                  { path: ROUTES.ADMIN_SETTINGS, element: <AdminSettingsPage /> },
                 ],
               },
-              // SUPER_ADMIN-only routes (separate layout)
+            ],
+          },
+          // ORG_ADMIN and AGENT routes (wrapped in ProtectedLayout)
+          {
+            element: <RequireRole roles={["ORG_ADMIN", "AGENT"]} />,
+            children: [
               {
-                element: <RequireRole roles={["SUPER_ADMIN"]} />,
+                element: <ProtectedLayout />,
                 children: [
+                  { path: ROUTES.DASHBOARD, element: <DashboardPage /> },
+                  { path: ROUTES.CATEGORIES, element: <CategoriesPage /> },
+                  { path: ROUTES.PRIORITIES, element: <PrioritiesPage /> },
+                  { path: ROUTES.ASSETS, element: <AssetsPage /> },
+                  { path: ROUTES.REQUESTERS, element: <RequestersPage /> },
+                  { path: ROUTES.TICKETS, element: <TicketsListPage /> },
+                  { path: ROUTES.TICKET_NEW, element: <CreateTicketPage /> },
+                  { path: ROUTES.TICKET_DETAIL, element: <TicketDetailPage /> },
+                  { path: ROUTES.SLAS, element: <SlasPage /> },
+                  { path: ROUTES.NOTIFICATIONS, element: <NotificationsPage /> },
+                  // ORG_ADMIN-only routes
                   {
-                    element: <AdminLayout />,
+                    element: <RequireRole roles={["ORG_ADMIN"]} />,
                     children: [
-                      { path: ROUTES.ADMIN_DASHBOARD, element: <AdminDashboardPage /> },
-                      { path: ROUTES.ADMIN_ORGANIZATIONS, element: <OrganizationsListPage /> },
-                      { path: ROUTES.ADMIN_ORGANIZATION_DETAIL, element: <OrganizationDetailPage /> },
-                      { path: ROUTES.ADMIN_USERS, element: <AdminUsersPage /> },
-                      { path: ROUTES.ADMIN_ANALYTICS, element: <AdminAnalyticsPage /> },
-                      { path: ROUTES.ADMIN_ACTIVITY, element: <AdminActivityPage /> },
-                      { path: ROUTES.ADMIN_SYSTEM_HEALTH, element: <AdminSystemHealthPage /> },
-                      { path: ROUTES.ADMIN_SETTINGS, element: <AdminSettingsPage /> },
+                      { path: ROUTES.AUTOMATION, element: <AutomationPage /> },
+                      { path: ROUTES.AUTOMATION_EXECUTIONS, element: <AutomationExecutionsPage /> },
+                      { path: ROUTES.USERS, element: <UsersPage /> },
                     ],
                   },
                 ],

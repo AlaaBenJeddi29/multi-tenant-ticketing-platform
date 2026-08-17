@@ -10,7 +10,6 @@ import {
   Zap,
   UserCog,
   LogOut,
-  Shield,
   History,
 } from "lucide-react";
 
@@ -88,12 +87,6 @@ export function AppSidebar() {
       icon: UserCog,
       label: "Users",
       allowedRoles: ["ORG_ADMIN"],
-    },
-    {
-      to: "/admin/organizations",
-      icon: Shield,
-      label: "Admin Panel",
-      allowedRoles: ["SUPER_ADMIN"],
     },
     // ==========================================
     // PLACEHOLDER LINKS - TO BE ADDED IN LATER PHASES
