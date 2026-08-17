@@ -16,7 +16,8 @@ import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { ticketFormSchema, type TicketFormValues } from "../schemas/ticket.schema";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { usePriorities } from "@/features/priorities/hooks/usePriorities";
-import { useRequesters, useAssets } from "@/features/requesters/hooks/useRequesters";
+import { useRequesters } from "@/features/requesters/hooks/useRequesters";
+import { useAssets } from "@/features/assets/hooks/useAssets";
 import { useUsersList } from "@/features/users/hooks/useUsersList";
 
 import type { Ticket } from "../types/ticket.types";
