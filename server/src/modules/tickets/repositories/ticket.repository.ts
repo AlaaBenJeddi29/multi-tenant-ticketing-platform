@@ -77,56 +77,66 @@ export const ticketSelect = {
 
 export async function findTickets(
   organizationId: string,
-  query: ListTicketsQuery
+  role?: string,
+  userId?: string,
+  query?: ListTicketsQuery
 ) {
   const where: Prisma.TicketWhereInput = {
     organizationId,
   };
 
+  // Role-based filtering: AGENT can only see tickets assigned to them
+  if (role === "AGENT" && userId) {
+    where.assignedToId = userId;
+  }
+
+  const actualQuery = query || { page: 1, pageSize: 50, sortBy: "createdAt", sortOrder: "desc" };
+
   // Apply search filter (title, case-insensitive contains)
-  if (query.search) {
+  if (actualQuery.search) {
     where.title = {
-      contains: query.search,
+      contains: actualQuery.search,
       mode: "insensitive",
     };
   }
 
   // Apply status filter
-  if (query.status !== undefined) {
-    where.status = query.status;
+  if (actualQuery.status !== undefined) {
+    where.status = actualQuery.status;
   }
 
   // Apply priorityId filter
-  if (query.priorityId !== undefined) {
-    where.priorityId = query.priorityId;
+  if (actualQuery.priorityId !== undefined) {
+    where.priorityId = actualQuery.priorityId;
   }
 
   // Apply categoryId filter
-  if (query.categoryId !== undefined) {
-    where.categoryId = query.categoryId;
+  if (actualQuery.categoryId !== undefined) {
+    where.categoryId = actualQuery.categoryId;
   }
 
   // Apply requesterId filter
-  if (query.requesterId !== undefined) {
-    where.requesterId = query.requesterId;
+  if (actualQuery.requesterId !== undefined) {
+    where.requesterId = actualQuery.requesterId;
   }
 
   // Apply assignedToId filter (supports "unassigned" literal)
-  if (query.assignedToId !== undefined) {
-    if (query.assignedToId === "unassigned") {
+  // Only for non-AGENT roles
+  if (actualQuery.assignedToId !== undefined && role !== "AGENT") {
+    if (actualQuery.assignedToId === "unassigned") {
       where.assignedToId = null;
     } else {
-      where.assignedToId = query.assignedToId;
+      where.assignedToId = actualQuery.assignedToId;
     }
   }
 
   // Build orderBy
   const orderBy: Prisma.TicketOrderByWithRelationInput = {
-    [query.sortBy]: query.sortOrder,
+    [actualQuery.sortBy]: actualQuery.sortOrder,
   };
 
   // Calculate pagination
-  const { skip, take } = getSkipTake(query.page, query.pageSize);
+  const { skip, take } = getSkipTake(actualQuery.page, actualQuery.pageSize);
 
   // Execute queries in parallel
   const [items, total] = await Promise.all([
@@ -145,13 +155,22 @@ export async function findTickets(
 
 export function findTicketById(
   id: string,
-  organizationId: string
+  organizationId: string,
+  role?: string,
+  userId?: string
 ) {
+  const where: Prisma.TicketWhereInput = {
+    id,
+    organizationId,
+  };
+
+  // Role-based filtering: AGENT can only access tickets assigned to them
+  if (role === "AGENT" && userId) {
+    where.assignedToId = userId;
+  }
+
   return prisma.ticket.findFirst({
-    where: {
-      id,
-      organizationId,
-    },
+    where,
 
     select: ticketSelect,
   });
@@ -161,21 +180,6 @@ export function createTicket(
   data: Prisma.TicketCreateInput
 ) {
   return prisma.ticket.create({
-    data,
-
-    select: ticketSelect,
-  });
-}
-
-export function updateTicket(
-  id: string,
-  data: Prisma.TicketUpdateInput
-) {
-  return prisma.ticket.update({
-    where: {
-      id,
-    },
-
     data,
 
     select: ticketSelect,
@@ -211,5 +215,18 @@ export function getLastTicketNumber(
     select: {
       ticketNumber: true,
     },
+  });
+}
+
+export function updateTicket(
+  id: string,
+  data: Prisma.TicketUpdateInput,
+  triggeredByAutomation: boolean = false
+) {
+  return prisma.ticket.update({
+    where: {
+      id,
+    },
+    data,
   });
 }

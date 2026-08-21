@@ -78,6 +78,14 @@ export async function createNewNotification(
           id: dto.userId,
         },
       },
+
+      ...(dto.relatedEntityType && {
+        relatedEntityType: dto.relatedEntityType,
+      }),
+
+      ...(dto.relatedEntityId && {
+        relatedEntityId: dto.relatedEntityId,
+      }),
     });
 
   return toNotificationResponse(

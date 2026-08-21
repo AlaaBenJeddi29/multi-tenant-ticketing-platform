@@ -3,7 +3,9 @@ import type {
   Response,
 } from "express";
 
+import { AppError } from "../../../lib/AppError.js";
 import { requireParam } from "../../../lib/params.js";
+import { prisma } from "../../../lib/prisma.js";
 
 import type {
   AuthenticatedRequest,
@@ -85,10 +87,53 @@ export async function createAutomationRule(
         req.body
       );
 
+    const organizationId = req.user!.organizationId;
+
+    // Database-level validation for actionValue
+    if (body.action === "ASSIGN_AGENT" && body.actionValue) {
+      const user = await prisma.user.findFirst({
+        where: {
+          id: body.actionValue,
+          organizationId,
+          isActive: true,
+          role: "AGENT",
+        },
+      });
+
+      if (!user) {
+        throw new AppError(
+          400,
+          "Invalid agent: user not found or does not belong to this organization"
+        );
+      }
+    }
+
+    if (body.action === "CHANGE_PRIORITY" && body.actionValue) {
+      const priority = await prisma.priority.findFirst({
+        where: {
+          id: body.actionValue!,
+          organizationId,
+          isActive: true,
+        },
+      });
+
+      if (!priority) {
+        throw new AppError(
+          400,
+          "Invalid priority: not found or does not belong to this organization"
+        );
+      }
+    }
+
+    // For CLOSE_TICKET and REOPEN_TICKET, overwrite actionValue with empty string
+    if (body.action === "CLOSE_TICKET" || body.action === "REOPEN_TICKET") {
+      body.actionValue = "";
+    }
+
     const rule =
       await automationService.createNewAutomationRule(
         body,
-        req.user!.organizationId
+        organizationId
       );
 
     return res
@@ -110,13 +155,56 @@ export async function updateAutomationRule(
         req.body
       );
 
+    const organizationId = req.user!.organizationId;
+
+    // Database-level validation for actionValue (only if action is being updated)
+    if (body.action === "ASSIGN_AGENT" && body.actionValue) {
+      const user = await prisma.user.findFirst({
+        where: {
+          id: body.actionValue!,
+          organizationId,
+          isActive: true,
+          role: "AGENT",
+        },
+      });
+
+      if (!user) {
+        throw new AppError(
+          400,
+          "Invalid agent: user not found or does not belong to this organization"
+        );
+      }
+    }
+
+    if (body.action === "CHANGE_PRIORITY" && body.actionValue) {
+      const priority = await prisma.priority.findFirst({
+        where: {
+          id: body.actionValue!,
+          organizationId,
+          isActive: true,
+        },
+      });
+
+      if (!priority) {
+        throw new AppError(
+          400,
+          "Invalid priority: not found or does not belong to this organization"
+        );
+      }
+    }
+
+    // For CLOSE_TICKET and REOPEN_TICKET, overwrite actionValue with empty string
+    if (body.action === "CLOSE_TICKET" || body.action === "REOPEN_TICKET") {
+      body.actionValue = "";
+    }
+
     const rule =
       await automationService.editAutomationRule(
         requireParam(
           req.params.id,
           "id"
         ),
-        req.user!.organizationId,
+        organizationId,
         body
       );
 

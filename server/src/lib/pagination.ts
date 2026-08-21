@@ -15,7 +15,7 @@ export const paginationQuerySchema = z.object({
     .int()
     .min(1)
     .max(100)
-    .default(20),
+    .default(8),
 
   sortOrder: z
     .enum(["asc", "desc"])

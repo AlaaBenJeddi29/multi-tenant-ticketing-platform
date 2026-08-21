@@ -16,6 +16,16 @@ export const createNotificationSchema = z.object({
   userId: z
     .string()
     .cuid("Invalid user id."),
+
+  relatedEntityType: z
+    .string()
+    .trim()
+    .optional(),
+
+  relatedEntityId: z
+    .string()
+    .cuid()
+    .optional(),
 });
 
 export type CreateNotificationDto =

@@ -300,6 +300,8 @@ model TicketComment {
   authorId String
   author   User   @relation(fields: [authorId], references: [id])
 
+  isAutomated Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -368,6 +370,9 @@ model Notification {
   userId String
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  relatedEntityType String? // e.g., "TICKET", "USER", "ASSET", etc.
+  relatedEntityId String?   // ID of the related entity
 
   createdAt DateTime @default(now())
 

@@ -1,4 +1,5 @@
 import { AppError } from "../../../lib/AppError.js";
+import { prisma } from "../../../lib/prisma.js";
 
 import type {
   CreateAutomationRuleDto,
@@ -12,6 +13,8 @@ import type {
   ListAutomationRulesQuery,
 } from "../dto/list-automation-rules.dto.js";
 
+import type { AutomationTrigger } from "../../../generated/prisma/client.js";
+
 import {
   createAutomationRule,
   deleteAutomationRule,
@@ -24,6 +27,8 @@ import {
   toAutomationResponse,
   toAutomationRulesListResponse,
 } from "../mappers/automation.mapper.js";
+
+import { executeAutomationAction } from "./automation-execution.service.js";
 
 export async function getAutomationRules(
   organizationId: string,
@@ -233,4 +238,94 @@ export async function removeAutomationRule(
   await deleteAutomationRule(
     id
   );
+}
+
+export async function evaluateTrigger(
+  trigger: AutomationTrigger,
+  ticketId: string,
+  organizationId: string
+) {
+  console.log(`[Automation] evaluateTrigger called: trigger=${trigger}, ticketId=${ticketId}, organizationId=${organizationId}`);
+
+  // Fetch the ticket with all necessary relations
+  const ticket = await prisma.ticket.findUnique({
+    where: { id: ticketId },
+    include: {
+      priority: true,
+      category: true,
+      requester: true,
+      assignedTo: true,
+    },
+  });
+
+  if (!ticket) {
+    console.log(`[Automation] Ticket not found: ${ticketId}`);
+    return;
+  }
+
+  // Fetch active rules for this organization and trigger
+  const rules = await prisma.automationRule.findMany({
+    where: {
+      organizationId,
+      trigger,
+      enabled: true,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  console.log(`[Automation] Found ${rules.length} active rules for trigger ${trigger}`);
+
+  // Evaluate and execute each rule
+  for (const rule of rules) {
+    try {
+      console.log(`[Automation] Evaluating rule ${rule.id}: ${rule.name}, action=${rule.action}`);
+      const conditionPassed = evaluateCondition(ticket, rule);
+
+      if (!conditionPassed) {
+        console.log(`[Automation] Condition failed for rule ${rule.id}`);
+        continue;
+      }
+
+      console.log(`[Automation] Condition passed, executing action for rule ${rule.id}`);
+      // Execute the action
+      await executeAutomationAction(ticket, rule);
+      console.log(`[Automation] Action executed successfully for rule ${rule.id}`);
+    } catch (error) {
+      // Log error but continue with other rules
+      console.error(
+        `Failed to execute automation rule ${rule.id}:`,
+        error
+      );
+    }
+  }
+}
+
+function evaluateCondition(
+  ticket: any,
+  rule: any
+): boolean {
+  switch (rule.condition) {
+    case "ALWAYS":
+      return true;
+
+    case "STATUS_IS":
+      return ticket.status === rule.conditionValue;
+
+    case "PRIORITY_IS":
+      return ticket.priorityId === rule.conditionValue;
+
+    case "UNASSIGNED":
+      return ticket.assignedToId === null;
+
+    case "RESPONSE_BREACHED":
+      return ticket.responseBreached === true;
+
+    case "RESOLUTION_BREACHED":
+      return ticket.resolutionBreached === true;
+
+    default:
+      return false;
+  }
 }

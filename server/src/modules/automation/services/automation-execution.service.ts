@@ -11,6 +11,8 @@ import { createNewNotification } from "../../notifications/services/notification
 
 import { emailService } from "../../../lib/email/index.js";
 
+import { updateTicket } from "../../tickets/repositories/ticket.repository.js";
+
 export async function executeAutomationAction(
   ticket: Ticket,
   rule: AutomationRule
@@ -53,19 +55,49 @@ async function assignAgent(
   ticket: Ticket,
   rule: AutomationRule
 ) {
-  if (!rule.actionValue) return;
+  if (!rule.actionValue) {
+    console.error("ASSIGN_AGENT: actionValue is empty");
+    return;
+  }
 
-  await prisma.ticket.update({
+  // Verify user exists, is active, and belongs to same organization
+  const user = await prisma.user.findFirst({
     where: {
-      id: ticket.id,
+      id: rule.actionValue,
+      organizationId: ticket.organizationId,
+      isActive: true,
     },
-    data: {
+  });
+
+  if (!user) {
+    console.error("ASSIGN_AGENT: User not found or inactive");
+    return;
+  }
+
+  // Skip if already assigned to this agent
+  if (ticket.assignedToId === rule.actionValue) {
+    return;
+  }
+
+  await updateTicket(
+    ticket.id,
+    {
       assignedTo: {
         connect: {
           id: rule.actionValue,
         },
       },
     },
+    true // triggeredByAutomation
+  );
+
+  // Create notification for the assigned agent
+  await createNewNotification({
+    userId: rule.actionValue,
+    title: "Ticket Assigned to You",
+    message: `Ticket #${ticket.ticketNumber}: ${ticket.title} has been assigned to you.`,
+    relatedEntityType: "TICKET",
+    relatedEntityId: ticket.id,
   });
 }
 
@@ -73,28 +105,42 @@ async function changeStatus(
   ticket: Ticket,
   rule: AutomationRule
 ) {
-  if (!rule.actionValue) return;
+  if (!rule.actionValue) {
+    console.error("CHANGE_STATUS: actionValue is empty");
+    return;
+  }
 
-  await prisma.ticket.update({
-    where: {
-      id: ticket.id,
-    },
-    data: {
+  // Skip if already has this status
+  if (ticket.status === rule.actionValue) {
+    return;
+  }
+
+  await updateTicket(
+    ticket.id,
+    {
       status: rule.actionValue as TicketStatus,
     },
-  });
+    true // triggeredByAutomation
+  );
 }
 
 async function addComment(
   ticket: Ticket,
   rule: AutomationRule
 ) {
-  if (!rule.actionValue) return;
+  console.log(`[Automation] ADD_COMMENT called for ticket ${ticket.id}, actionValue: ${rule.actionValue}`);
+  
+  if (!rule.actionValue) {
+    console.error("ADD_COMMENT: actionValue is empty");
+    return;
+  }
 
+  // Find an ORG_ADMIN to use as author
   const orgAdmin = await prisma.user.findFirst({
     where: {
       organizationId: ticket.organizationId,
       role: "ORG_ADMIN",
+      isActive: true,
     },
     select: {
       id: true,
@@ -102,89 +148,156 @@ async function addComment(
   });
 
   const authorId = orgAdmin?.id || ticket.createdById;
+  console.log(`[Automation] ADD_COMMENT: Using authorId ${authorId}`);
 
-  await prisma.ticketComment.create({
+  const comment = await prisma.ticketComment.create({
     data: {
       ticketId: ticket.id,
       content: rule.actionValue,
       authorId,
+      isAutomated: true,
     },
   });
+  
+  console.log(`[Automation] ADD_COMMENT: Comment created successfully with id ${comment.id}`);
 }
 
 async function changePriority(
   ticket: Ticket,
   rule: AutomationRule
 ) {
-  if (!rule.actionValue) return;
+  if (!rule.actionValue) {
+    console.error("CHANGE_PRIORITY: actionValue is empty");
+    return;
+  }
 
-  await prisma.ticket.update({
+  // Skip if already has this priority
+  if (ticket.priorityId === rule.actionValue) {
+    return;
+  }
+
+  // Verify priority exists and belongs to same organization
+  const priority = await prisma.priority.findFirst({
     where: {
-      id: ticket.id,
+      id: rule.actionValue,
+      organizationId: ticket.organizationId,
+      isActive: true,
     },
-    data: {
+  });
+
+  if (!priority) {
+    console.error("CHANGE_PRIORITY: Priority not found or inactive");
+    return;
+  }
+
+  await updateTicket(
+    ticket.id,
+    {
       priority: {
         connect: {
           id: rule.actionValue,
         },
       },
     },
-  });
+    true // triggeredByAutomation
+  );
 }
 
 async function closeTicket(ticket: Ticket) {
-  await prisma.ticket.update({
-    where: {
-      id: ticket.id,
-    },
-    data: {
+  // Skip if already closed
+  if (ticket.status === TicketStatus.CLOSED) {
+    return;
+  }
+
+  await updateTicket(
+    ticket.id,
+    {
       status: TicketStatus.CLOSED,
       resolvedAt: new Date(),
     },
-  });
+    true // triggeredByAutomation
+  );
 }
 
 async function reopenTicket(ticket: Ticket) {
-  await prisma.ticket.update({
-    where: {
-      id: ticket.id,
-    },
-    data: {
+  // Skip if not closed
+  if (ticket.status !== TicketStatus.CLOSED) {
+    return;
+  }
+
+  await updateTicket(
+    ticket.id,
+    {
       status: TicketStatus.NEW,
       resolvedAt: null,
     },
-  });
+    true // triggeredByAutomation
+  );
 }
 
 async function sendNotification(
   ticket: Ticket,
   rule: AutomationRule
 ) {
-  if (!rule.actionValue) return;
+  if (!rule.actionValue) {
+    console.error("SEND_NOTIFICATION: actionValue is empty");
+    return;
+  }
 
-  if (!ticket.assignedToId) return;
+  // If ticket has an assigned agent, notify them
+  if (ticket.assignedToId) {
+    await createNewNotification({
+      userId: ticket.assignedToId,
+      title: "Automation Alert",
+      message: rule.actionValue,
+    });
+    return;
+  }
 
-  await createNewNotification({
-    userId: ticket.assignedToId,
-    title: "Ticket Automation",
-    message: rule.actionValue,
+  // If no agent is assigned, notify all ORG_ADMINs in the organization
+  const orgAdmins = await prisma.user.findMany({
+    where: {
+      organizationId: ticket.organizationId,
+      role: "ORG_ADMIN",
+      isActive: true,
+    },
+    select: {
+      id: true,
+    },
   });
+
+  // Create notification for each ORG_ADMIN
+  for (const admin of orgAdmins) {
+    await createNewNotification({
+      userId: admin.id,
+      title: "Automation Alert",
+      message: rule.actionValue,
+    });
+  }
 }
 
 async function sendEmail(
   ticket: Ticket,
   rule: AutomationRule
 ) {
-  const requester = await prisma.user.findUnique({
-    where: { id: ticket.requesterId },
-    select: { email: true },
-  });
+  try {
+    const requester = await prisma.requester.findUnique({
+      where: { id: ticket.requesterId },
+      select: { email: true },
+    });
 
-  const to = rule.actionValue || requester?.email;
-  if (!to) return;
+    const to = requester?.email;
+    if (!to) {
+      console.warn("SEND_EMAIL: No requester email found");
+      return;
+    }
 
-  const subject = `Update on your ticket #${ticket.ticketNumber}`;
-  const body = "The status of your ticket has been updated.";
+    const subject = `Update on your ticket #${ticket.ticketNumber}`;
+    const body = rule.actionValue || "The status of your ticket has been updated.";
 
-  await emailService.send(to, subject, body);
+    await emailService.send(to, subject, body);
+  } catch (error) {
+    // Email failure should not break other actions
+    console.error("SEND_EMAIL: Failed to send email", error);
+  }
 }

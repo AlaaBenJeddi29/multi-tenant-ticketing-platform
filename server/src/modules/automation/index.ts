@@ -12,3 +12,7 @@ export {
 export {
   startAutomationJobs,
 } from "./jobs/automation.jobs.js";
+
+export {
+  evaluateTrigger,
+} from "./services/automation.service.js";

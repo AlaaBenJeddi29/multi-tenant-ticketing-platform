@@ -39,8 +39,14 @@ export async function getTickets(
   try {
     const query = listTicketsQuerySchema.parse(req.query);
 
+    if (!req.user?.role || !req.user?.userId) {
+      return res.status(401).json({ message: "Invalid authentication" });
+    }
+
     const tickets = await ticketService.getTickets(
-      req.user!.organizationId,
+      req.user.organizationId!,
+      req.user.role,
+      req.user.userId,
       query
     );
 
@@ -56,9 +62,15 @@ export async function getTicket(
   next: NextFunction
 ) {
   try {
+    if (!req.user?.role || !req.user?.userId) {
+      return res.status(401).json({ message: "Invalid authentication" });
+    }
+
     const ticket = await ticketService.getTicketById(
       requireParam(req.params.id, "id"),
-      req.user!.organizationId
+      req.user.organizationId!,
+      req.user.role,
+      req.user.userId
     );
 
     return res.status(200).json(ticket);
@@ -75,10 +87,14 @@ export async function createTicket(
   try {
     const body = createTicketSchema.parse(req.body);
 
+    if (!req.user?.userId || !req.user?.organizationId) {
+      return res.status(401).json({ message: "Invalid authentication" });
+    }
+
     const ticket = await ticketService.createNewTicket(
       body,
-      req.user!.organizationId,
-      req.user!.userId // <-- FIXED
+      req.user.organizationId,
+      req.user.userId
     );
 
     return res.status(201).json(ticket);
@@ -95,9 +111,13 @@ export async function updateTicket(
   try {
     const body = updateTicketSchema.parse(req.body);
 
+    if (!req.user?.organizationId) {
+      return res.status(401).json({ message: "Invalid authentication" });
+    }
+
     const ticket = await ticketService.editTicket(
       requireParam(req.params.id, "id"),
-      req.user!.organizationId,
+      req.user.organizationId,
       body
     );
 
@@ -115,9 +135,13 @@ export async function assignTicket(
   try {
     const body = assignTicketSchema.parse(req.body);
 
+    if (!req.user?.organizationId) {
+      return res.status(401).json({ message: "Invalid authentication" });
+    }
+
     const ticket = await ticketService.assignTicket(
       requireParam(req.params.id, "id"),
-      req.user!.organizationId,
+      req.user.organizationId,
       body
     );
 
@@ -135,9 +159,13 @@ export async function updateTicketStatus(
   try {
     const body = updateTicketStatusSchema.parse(req.body);
 
+    if (!req.user?.organizationId) {
+      return res.status(401).json({ message: "Invalid authentication" });
+    }
+
     const ticket = await ticketService.updateStatus(
       requireParam(req.params.id, "id"),
-      req.user!.organizationId,
+      req.user.organizationId,
       body
     );
 
@@ -153,9 +181,13 @@ export async function deleteTicket(
   next: NextFunction
 ) {
   try {
+    if (!req.user?.organizationId) {
+      return res.status(401).json({ message: "Invalid authentication" });
+    }
+
     await ticketService.removeTicket(
       requireParam(req.params.id, "id"),
-      req.user!.organizationId
+      req.user.organizationId
     );
 
     return res.status(200).json({
@@ -172,10 +204,14 @@ export async function claimTicket(
   next: NextFunction
 ) {
   try {
+    if (!req.user?.organizationId || !req.user?.userId) {
+      return res.status(401).json({ message: "Invalid authentication" });
+    }
+
     const ticket = await ticketService.assignTicket(
       requireParam(req.params.id, "id"),
-      req.user!.organizationId,
-      { assignedToId: req.user!.userId }
+      req.user.organizationId,
+      { assignedToId: req.user.userId }
     );
 
     return res.status(200).json(ticket);

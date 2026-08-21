@@ -17,9 +17,10 @@ import { findActiveSlaByPriority } from "../../sla/repositories/sla.repository.j
 import {
   calculateSlaDeadlines,
   processResolution,
-  executeAutomationRules,
+  evaluateTrigger,
 } from "../../automation/index.js";
 
+import { createNewNotification } from "../../notifications/services/notification.service.js";
 
 import {
   createTicket,
@@ -35,8 +36,13 @@ import {
   toTicketsListResponse,
 } from "../mappers/ticket.mapper.js";
 
-export async function getTickets(organizationId: string, query: ListTicketsQuery) {
-  const { items, total } = await findTickets(organizationId, query);
+export async function getTickets(
+  organizationId: string,
+  role: string,
+  userId: string,
+  query: ListTicketsQuery
+) {
+  const { items, total } = await findTickets(organizationId, role, userId, query);
 
   return toTicketsListResponse({
     items,
@@ -46,8 +52,13 @@ export async function getTickets(organizationId: string, query: ListTicketsQuery
   });
 }
 
-export async function getTicketById(id: string, organizationId: string) {
-  const ticket = await findTicketById(id, organizationId);
+export async function getTicketById(
+  id: string,
+  organizationId: string,
+  role?: string,
+  userId?: string
+) {
+  const ticket = await findTicketById(id, organizationId, role, userId);
 
   if (!ticket) {
     throw new AppError(404, "Ticket not found.");
@@ -137,7 +148,18 @@ export async function createNewTicket(
     }),
   });
 
-  await executeAutomationRules(ticket.id, "TICKET_CREATED");
+  await evaluateTrigger("TICKET_CREATED", ticket.id, organizationId);
+
+  // Create notification for the assigned agent if ticket was created with assignment
+  if (dto.assignedToId) {
+    await createNewNotification({
+      userId: dto.assignedToId,
+      title: "Ticket Assigned to You",
+      message: `Ticket #${ticket.ticketNumber}: "${ticket.title}" has been assigned to you.`,
+      relatedEntityType: "TICKET",
+      relatedEntityId: ticket.id,
+    });
+  }
 
   return toTicketResponse(ticket);
 }
@@ -145,7 +167,8 @@ export async function createNewTicket(
 export async function editTicket(
   id: string,
   organizationId: string,
-  dto: UpdateTicketDto
+  dto: UpdateTicketDto,
+  triggeredByAutomation: boolean = false
 ) {
   await getTicketById(id, organizationId);
 
@@ -207,11 +230,21 @@ export async function editTicket(
         };
   }
 
-  const ticket = await updateTicket(id, data);
+  const ticket = await updateTicket(id, data, triggeredByAutomation);
 
-  await executeAutomationRules(id, "TICKET_UPDATED");
+  // Only trigger automation if not triggered by automation itself (loop protection)
+  if (!triggeredByAutomation) {
+    await evaluateTrigger("TICKET_UPDATED", id, organizationId);
+  }
 
-  return toTicketResponse(ticket);
+  // Fetch updated ticket with relations for response
+  const updated = await findTicketById(id, organizationId, undefined, undefined);
+
+  if (!updated) {
+    throw new AppError(404, "Ticket not found.");
+  }
+
+  return toTicketResponse(updated);
 }
 
 export async function assignTicket(
@@ -219,7 +252,11 @@ export async function assignTicket(
   organizationId: string,
   dto: AssignTicketDto
 ) {
-  await getTicketById(id, organizationId);
+  const existing = await findTicketById(id, organizationId, undefined, undefined);
+
+  if (!existing) {
+    throw new AppError(404, "Ticket not found.");
+  }
 
   const ticket = await updateTicket(id, {
     assignedTo: {
@@ -229,15 +266,34 @@ export async function assignTicket(
     },
   });
 
-  return toTicketResponse(ticket);
+  // Create notification for the assigned agent if assignment changed
+  if (dto.assignedToId && existing.assignedTo?.id !== dto.assignedToId) {
+    await createNewNotification({
+      userId: dto.assignedToId,
+      title: "Ticket Assigned to You",
+      message: `Ticket #${ticket.ticketNumber}: ${ticket.title} has been assigned to you.`,
+      relatedEntityType: "TICKET",
+      relatedEntityId: id,
+    });
+  }
+
+  // Fetch updated ticket with relations for response
+  const updated = await findTicketById(id, organizationId, undefined, undefined);
+
+  if (!updated) {
+    throw new AppError(404, "Ticket not found.");
+  }
+
+  return toTicketResponse(updated);
 }
 
 export async function updateStatus(
   id: string,
   organizationId: string,
-  dto: UpdateTicketStatusDto
+  dto: UpdateTicketStatusDto,
+  triggeredByAutomation: boolean = false
 ) {
-  const existing = await findTicketById(id, organizationId);
+  const existing = await findTicketById(id, organizationId, undefined, undefined);
 
   if (!existing) {
     throw new AppError(404, "Ticket not found.");
@@ -245,7 +301,7 @@ export async function updateStatus(
 
   await updateTicket(id, {
     status: dto.status,
-  });
+  }, triggeredByAutomation);
 
   if (dto.status === "RESOLVED") {
     await processResolution(
@@ -255,9 +311,12 @@ export async function updateStatus(
     );
   }
 
-  await executeAutomationRules(id, "STATUS_CHANGED");
+  // Only trigger automation if not triggered by automation itself (loop protection)
+  if (!triggeredByAutomation) {
+    await evaluateTrigger("STATUS_CHANGED", id, organizationId);
+  }
 
-  const updated = await findTicketById(id, organizationId);
+  const updated = await findTicketById(id, organizationId, undefined, undefined);
 
   if (!updated) {
     throw new AppError(404, "Ticket not found.");
