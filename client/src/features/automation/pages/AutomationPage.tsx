@@ -25,7 +25,7 @@ export default function AutomationPage() {
   // Fetch automation rules with current filters
   const { data, isLoading } = useAutomationRules({
     page,
-    pageSize: 20,
+    pageSize: 8,
     sortBy: "name",
     sortOrder: "asc",
     search: search || undefined,
@@ -72,7 +72,7 @@ export default function AutomationPage() {
         meta={
           data?.meta || {
             page: 1,
-            pageSize: 20,
+            pageSize: 8,
             total: 0,
             totalPages: 0,
           }

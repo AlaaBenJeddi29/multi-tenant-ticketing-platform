@@ -24,7 +24,7 @@ export default function AssetsPage() {
   // Fetch assets with current filters
   const { data, isLoading } = useAssets({
     page,
-    pageSize: 20,
+    pageSize: 8,
     sortBy: "createdAt",
     sortOrder: "desc",
     search: search || undefined,
@@ -73,7 +73,7 @@ export default function AssetsPage() {
         meta={
           data?.meta || {
             page: 1,
-            pageSize: 20,
+            pageSize: 8,
             total: 0,
             totalPages: 0,
           }

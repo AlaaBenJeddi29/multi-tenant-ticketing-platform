@@ -1,5 +1,5 @@
 import { Bell, Check, CheckCheck, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ import { useNotifications } from "../hooks/useNotifications";
 import { useMarkAsRead } from "../hooks/useMarkAsRead";
 import { useMarkAllAsRead } from "../hooks/useMarkAllAsRead";
 import { useDeleteNotification } from "../hooks/useDeleteNotification";
+import { getNotificationPath } from "../utils/navigation.utils";
 
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/app/router/routes";
@@ -37,10 +38,11 @@ export function NotificationBell() {
   const markAsReadMutation = useMarkAsRead();
   const markAllAsReadMutation = useMarkAllAsRead();
   const deleteNotificationMutation = useDeleteNotification();
+  const navigate = useNavigate();
 
   const unreadCount = unreadData?.count ?? 0;
-  const notifications = Array.isArray(notificationsData?.data) 
-    ? notificationsData.data 
+  const notifications = Array.isArray(notificationsData?.data)
+    ? notificationsData.data
     : [];
 
   const handleMarkAsRead = (id: string) => {
@@ -53,6 +55,16 @@ export function NotificationBell() {
 
   const handleDelete = (id: string) => {
     deleteNotificationMutation.mutate(id);
+  };
+
+  const handleNotificationClick = (notification: any) => {
+    const path = getNotificationPath(notification);
+    if (path) {
+      if (!notification.isRead) {
+        handleMarkAsRead(notification.id);
+      }
+      navigate(path);
+    }
   };
 
   return (
@@ -107,63 +119,80 @@ export function NotificationBell() {
             </div>
           ) : (
             <div className="divide-y">
-              {notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={cn(
-                    "group relative px-4 py-3 transition-colors hover:bg-accent",
-                    !notification.isRead && "bg-muted/50"
-                  )}
-                >
-                  <div className="flex gap-2">
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm font-medium leading-tight">
-                          {notification.title}
+              {notifications.map((notification) => {
+                const path = getNotificationPath(notification);
+                const content = (
+                  <div
+                    key={notification.id}
+                    className={cn(
+                      "group relative px-4 py-3 transition-colors hover:bg-accent",
+                      !notification.isRead && "bg-muted/50",
+                      path && "cursor-pointer"
+                    )}
+                    onClick={(e) => {
+                      if (path) {
+                        e.stopPropagation();
+                        handleNotificationClick(notification);
+                      }
+                    }}
+                  >
+                    <div className="flex gap-2">
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-sm font-medium leading-tight">
+                            {notification.title}
+                          </p>
+                          {!notification.isRead && (
+                            <Badge
+                              variant="default"
+                              className="h-2 w-2 rounded-full p-0"
+                            />
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {notification.message}
                         </p>
-                        {!notification.isRead && (
-                          <Badge
-                            variant="default"
-                            className="h-2 w-2 rounded-full p-0"
-                          />
-                        )}
+                        <p className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(notification.createdAt), {
+                            addSuffix: true,
+                          })}
+                        </p>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        {notification.message}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(notification.createdAt), {
-                          addSuffix: true,
-                        })}
-                      </p>
-                    </div>
-                    <div className="flex flex-col gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                      {!notification.isRead && (
+                      <div className="flex flex-col gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                        {!notification.isRead && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMarkAsRead(notification.id);
+                            }}
+                            disabled={markAsReadMutation.isPending}
+                            title="Mark as read"
+                          >
+                            <Check className="size-3" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={() => handleMarkAsRead(notification.id)}
-                          disabled={markAsReadMutation.isPending}
-                          title="Mark as read"
+                          className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(notification.id);
+                          }}
+                          disabled={deleteNotificationMutation.isPending}
+                          title="Delete"
                         >
-                          <Check className="size-3" />
+                          <X className="size-3" />
                         </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                        onClick={() => handleDelete(notification.id)}
-                        disabled={deleteNotificationMutation.isPending}
-                        title="Delete"
-                      >
-                        <X className="size-3" />
-                      </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+                return content;
+              })}
             </div>
           )}
         </div>

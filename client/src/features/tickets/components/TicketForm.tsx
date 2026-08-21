@@ -85,6 +85,7 @@ export function TicketForm({
     sortBy: "lastName",
     sortOrder: "asc",
     isActive: true,
+    role: "AGENT",
   });
 
   // Prefill form in edit mode
@@ -233,19 +234,19 @@ export function TicketForm({
 
         {/* Assignee (Optional) */}
         <Field>
-          <FieldLabel htmlFor="assignedToId">Assign To</FieldLabel>
+          <FieldLabel htmlFor="assignedToId">Assign To (optional)</FieldLabel>
           <Select
             value={assignedToId}
             onValueChange={(value) => setValue("assignedToId", value)}
           >
             <SelectTrigger id="assignedToId">
-              <SelectValue placeholder="Assign to user (optional)" />
+              <SelectValue placeholder="Leave unassigned" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="">Unassigned</SelectItem>
               {usersData?.data.map((user) => (
                 <SelectItem key={user.id} value={user.id}>
-                  {user.firstName} {user.lastName} ({user.role})
+                  {user.firstName} {user.lastName}
                 </SelectItem>
               ))}
             </SelectContent>

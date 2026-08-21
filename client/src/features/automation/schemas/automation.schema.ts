@@ -58,7 +58,19 @@ export const automationRuleSchema = z.object({
   if (
     data.action === "ASSIGN_AGENT" ||
     data.action === "CHANGE_STATUS" ||
-    data.action === "CHANGE_PRIORITY" ||
+    data.action === "CHANGE_PRIORITY"
+  ) {
+    if (!data.actionValue) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Action value is required for ${data.action}`,
+        path: ["actionValue"],
+      });
+    }
+  }
+
+  // Validate actionValue with minimum length for text-based actions
+  if (
     data.action === "ADD_COMMENT" ||
     data.action === "SEND_NOTIFICATION" ||
     data.action === "SEND_EMAIL"
@@ -67,6 +79,12 @@ export const automationRuleSchema = z.object({
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: `Action value is required for ${data.action}`,
+        path: ["actionValue"],
+      });
+    } else if (data.actionValue.length < 5) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Action value must be at least 5 characters`,
         path: ["actionValue"],
       });
     }

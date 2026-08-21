@@ -9,6 +9,8 @@ export interface Notification {
   message: string;
   isRead: boolean;
   userId: string;
+  relatedEntityType?: string;
+  relatedEntityId?: string;
   createdAt: string;
 }
 

@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Trash2, Send, Loader2 } from "lucide-react";
+import { Trash2, Send, Loader2, Bot } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Alert } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
@@ -102,10 +103,19 @@ export function CommentThread({ ticketId, comments }: CommentThreadProps) {
                   </div>
 
                   {/* Author Name & Timestamp */}
-                  <div>
-                    <p className="text-sm font-medium text-foreground">
-                      {comment.author.firstName} {comment.author.lastName}
-                    </p>
+                  <div className="flex items-center gap-2">
+                    {comment.isAutomated ? (
+                      <div className="flex items-center gap-1.5">
+                        <Bot className="size-3.5 text-muted-foreground" />
+                        <Badge variant="secondary" className="text-xs">
+                          System
+                        </Badge>
+                      </div>
+                    ) : (
+                      <p className="text-sm font-medium text-foreground">
+                        {comment.author.firstName} {comment.author.lastName}
+                      </p>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(comment.createdAt), {
                         addSuffix: true,

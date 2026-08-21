@@ -28,7 +28,7 @@ export default function UsersPage() {
   // Fetch users with current filters
   const { data, isLoading } = useUsersList({
     page,
-    pageSize: 20,
+    pageSize: 8,
     sortBy: "lastName",
     sortOrder: "asc",
     search: search || undefined,
@@ -80,7 +80,7 @@ export default function UsersPage() {
         meta={
           data?.meta || {
             page: 1,
-            pageSize: 20,
+            pageSize: 8,
             total: 0,
             totalPages: 0,
           }

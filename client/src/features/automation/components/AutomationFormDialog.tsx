@@ -40,7 +40,6 @@ import type { TicketStatus } from "@/features/tickets/types/ticket.types";
 const TICKET_STATUSES: TicketStatus[] = [
   "NEW",
   "IN_PROGRESS",
-  "WAITING_REQUESTER",
   "RESOLVED",
   "CLOSED",
 ];
@@ -48,7 +47,6 @@ const TICKET_STATUSES: TicketStatus[] = [
 const STATUS_LABELS: Record<TicketStatus, string> = {
   NEW: "New",
   IN_PROGRESS: "In Progress",
-  WAITING_REQUESTER: "Waiting Requester",
   RESOLVED: "Resolved",
   CLOSED: "Closed",
 };
@@ -71,13 +69,14 @@ export function AutomationFormDialog({
   // Fetch priorities for PRIORITY_IS condition and CHANGE_PRIORITY action
   const { data: prioritiesData } = usePriorities({ isActive: true, pageSize: 100 });
 
-  // Fetch users for ASSIGN_AGENT action
-  const { data: usersData } = useUsersList({
+  // Fetch agents for ASSIGN_AGENT action
+  const { data: agentsData } = useUsersList({
     page: 1,
     pageSize: 100,
     sortBy: "lastName",
     sortOrder: "asc",
     isActive: true,
+    role: "AGENT",
   });
 
   const {
@@ -122,9 +121,7 @@ export function AutomationFormDialog({
 
   // Reset actionValue when action changes
   useEffect(() => {
-    if (!actionRequiresValue(selectedAction)) {
-      setValue("actionValue", null);
-    }
+    setValue("actionValue", "");
   }, [selectedAction, setValue]);
 
   // Reset form when dialog opens/closes or rule changes
@@ -244,14 +241,27 @@ export function AutomationFormDialog({
    * Render dynamic action value input based on selected action
    */
   const renderActionValueInput = () => {
-    if (!actionRequiresValue(selectedAction)) {
-      return null;
+    // CLOSE_TICKET and REOPEN_TICKET don't need any input, but show helper text
+    if (selectedAction === "CLOSE_TICKET") {
+      return (
+        <p className="text-sm text-muted-foreground">
+          The ticket will be automatically closed when this rule fires.
+        </p>
+      );
+    }
+
+    if (selectedAction === "REOPEN_TICKET") {
+      return (
+        <p className="text-sm text-muted-foreground">
+          The ticket will be automatically reopened when this rule fires.
+        </p>
+      );
     }
 
     if (selectedAction === "ASSIGN_AGENT") {
       return (
         <Field>
-          <FieldLabel htmlFor="actionValue">Agent *</FieldLabel>
+          <FieldLabel htmlFor="actionValue">Assign To *</FieldLabel>
           <Controller
             name="actionValue"
             control={control}
@@ -261,9 +271,9 @@ export function AutomationFormDialog({
                   <SelectValue placeholder="Select agent" />
                 </SelectTrigger>
                 <SelectContent>
-                  {usersData?.data.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.firstName} {user.lastName} ({user.role})
+                  {agentsData?.data.map((agent) => (
+                    <SelectItem key={agent.id} value={agent.id}>
+                      {agent.firstName} {agent.lastName}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -278,7 +288,7 @@ export function AutomationFormDialog({
     if (selectedAction === "CHANGE_STATUS") {
       return (
         <Field>
-          <FieldLabel htmlFor="actionValue">Status *</FieldLabel>
+          <FieldLabel htmlFor="actionValue">Change Status To *</FieldLabel>
           <Controller
             name="actionValue"
             control={control}
@@ -305,7 +315,7 @@ export function AutomationFormDialog({
     if (selectedAction === "CHANGE_PRIORITY") {
       return (
         <Field>
-          <FieldLabel htmlFor="actionValue">Priority *</FieldLabel>
+          <FieldLabel htmlFor="actionValue">Change Priority To *</FieldLabel>
           <Controller
             name="actionValue"
             control={control}
@@ -335,21 +345,52 @@ export function AutomationFormDialog({
       );
     }
 
-    if (
-      selectedAction === "ADD_COMMENT" ||
-      selectedAction === "SEND_NOTIFICATION" ||
-      selectedAction === "SEND_EMAIL"
-    ) {
+    if (selectedAction === "ADD_COMMENT") {
       return (
         <Field>
-          <FieldLabel htmlFor="actionValue">Content *</FieldLabel>
+          <FieldLabel htmlFor="actionValue">Comment Text *</FieldLabel>
           <textarea
             id="actionValue"
-            rows={3}
-            placeholder="Enter content..."
+            rows={4}
+            placeholder="e.g. This ticket has been automatically escalated."
             className="w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             {...register("actionValue")}
           />
+          {errors.actionValue && <FieldError>{errors.actionValue.message}</FieldError>}
+        </Field>
+      );
+    }
+
+    if (selectedAction === "SEND_NOTIFICATION") {
+      return (
+        <Field>
+          <FieldLabel htmlFor="actionValue">Notification Message *</FieldLabel>
+          <textarea
+            id="actionValue"
+            rows={3}
+            placeholder="e.g. A high priority ticket requires your attention."
+            className="w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            {...register("actionValue")}
+          />
+          {errors.actionValue && <FieldError>{errors.actionValue.message}</FieldError>}
+        </Field>
+      );
+    }
+
+    if (selectedAction === "SEND_EMAIL") {
+      return (
+        <Field>
+          <FieldLabel htmlFor="actionValue">Email Message *</FieldLabel>
+          <textarea
+            id="actionValue"
+            rows={3}
+            placeholder="e.g. Your ticket status has been updated."
+            className="w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            {...register("actionValue")}
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            The email will be sent to the ticket's requester.
+          </p>
           {errors.actionValue && <FieldError>{errors.actionValue.message}</FieldError>}
         </Field>
       );

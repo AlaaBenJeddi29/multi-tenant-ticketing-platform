@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { Check, CheckCheck, Trash2 } from "lucide-react";
 
@@ -12,12 +13,14 @@ import { useMarkAsRead } from "../hooks/useMarkAsRead";
 import { useMarkAllAsRead } from "../hooks/useMarkAllAsRead";
 import { useDeleteNotification } from "../hooks/useDeleteNotification";
 import { useUnreadCount } from "../hooks/useUnreadCount";
+import { getNotificationPath } from "../utils/navigation.utils";
 
 import { cn } from "@/lib/utils";
 
 export default function NotificationsPage() {
   const [page, setPage] = useState(1);
-  const pageSize = 20;
+  const pageSize = 8;
+  const navigate = useNavigate();
 
   const { data: unreadData } = useUnreadCount();
   const { data, isLoading } = useNotifications({
@@ -52,6 +55,16 @@ export default function NotificationsPage() {
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
+  };
+
+  const handleNotificationClick = (notification: any) => {
+    const path = getNotificationPath(notification);
+    if (path) {
+      if (!notification.isRead) {
+        handleMarkAsRead(notification.id);
+      }
+      navigate(path);
+    }
   };
 
   return (
@@ -97,60 +110,75 @@ export default function NotificationsPage() {
         ) : (
           // Notifications
           <>
-            {notifications.map((notification) => (
-              <Card
-                key={notification.id}
-                className={cn(
-                  "group p-4 transition-colors",
-                  !notification.isRead && "border-l-4 border-l-primary bg-muted/30"
-                )}
-              >
-                <div className="flex gap-4">
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-foreground">
-                          {notification.title}
-                        </h3>
-                        {!notification.isRead && (
-                          <Badge variant="default" className="h-2 w-2 rounded-full p-0" />
-                        )}
+            {notifications.map((notification) => {
+              const path = getNotificationPath(notification);
+              return (
+                <Card
+                  key={notification.id}
+                  className={cn(
+                    "group p-4 transition-colors",
+                    !notification.isRead && "border-l-4 border-l-primary bg-muted/30",
+                    path && "cursor-pointer hover:bg-accent"
+                  )}
+                  onClick={() => {
+                    if (path) {
+                      handleNotificationClick(notification);
+                    }
+                  }}
+                >
+                  <div className="flex gap-4">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-foreground">
+                            {notification.title}
+                          </h3>
+                          {!notification.isRead && (
+                            <Badge variant="default" className="h-2 w-2 rounded-full p-0" />
+                          )}
+                        </div>
+                        <span className="text-sm text-muted-foreground whitespace-nowrap">
+                          {formatDistanceToNow(new Date(notification.createdAt), {
+                            addSuffix: true,
+                          })}
+                        </span>
                       </div>
-                      <span className="text-sm text-muted-foreground whitespace-nowrap">
-                        {formatDistanceToNow(new Date(notification.createdAt), {
-                          addSuffix: true,
-                        })}
-                      </span>
+                      <p className="text-sm text-muted-foreground">
+                        {notification.message}
+                      </p>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {notification.message}
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-                    {!notification.isRead && (
+                    <div className="flex items-start gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                      {!notification.isRead && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMarkAsRead(notification.id);
+                          }}
+                          disabled={markAsReadMutation.isPending}
+                          title="Mark as read"
+                        >
+                          <Check className="size-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleMarkAsRead(notification.id)}
-                        disabled={markAsReadMutation.isPending}
-                        title="Mark as read"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(notification.id);
+                        }}
+                        disabled={deleteNotificationMutation.isPending}
+                        title="Delete"
                       >
-                        <Check className="size-4" />
+                        <Trash2 className="size-4 text-destructive" />
                       </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(notification.id)}
-                      disabled={deleteNotificationMutation.isPending}
-                      title="Delete"
-                    >
-                      <Trash2 className="size-4 text-destructive" />
-                    </Button>
+                    </div>
                   </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
 
             {/* Pagination */}
             {meta.totalPages > 1 && (

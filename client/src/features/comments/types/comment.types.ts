@@ -21,6 +21,7 @@ export interface CommentWithAuthor {
   id: string;
   content: string;
   createdAt: string;
+  isAutomated?: boolean;
   author: {
     id: string;
     firstName: string;

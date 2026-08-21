@@ -18,7 +18,7 @@ import { useAutomationExecutions } from "../hooks/useAutomationExecutions";
  */
 export default function AutomationExecutionsPage() {
   const [page, setPage] = useState(1);
-  const pageSize = 20;
+  const pageSize = 8;
 
   const { data, isLoading } = useAutomationExecutions({ page, pageSize });
 

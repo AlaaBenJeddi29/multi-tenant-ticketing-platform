@@ -23,7 +23,7 @@ export default function TicketsListPage() {
   // Fetch tickets with current filters
   const { data, isLoading } = useTickets({
     page,
-    pageSize: 20,
+    pageSize: 8,
     sortBy: "createdAt",
     sortOrder: "desc",
     search: search || undefined,
@@ -95,7 +95,7 @@ export default function TicketsListPage() {
         meta={
           data?.meta || {
             page: 1,
-            pageSize: 20,
+            pageSize: 8,
             total: 0,
             totalPages: 0,
           }

@@ -24,7 +24,7 @@ export default function SlasPage() {
   // Fetch SLAs with current filters
   const { data, isLoading } = useSlas({
     page,
-    pageSize: 20,
+    pageSize: 8,
     sortBy: "name",
     sortOrder: "asc",
     search: search || undefined,
@@ -73,7 +73,7 @@ export default function SlasPage() {
         meta={
           data?.meta || {
             page: 1,
-            pageSize: 20,
+            pageSize: 8,
             total: 0,
             totalPages: 0,
           }
