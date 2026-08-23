@@ -227,6 +227,7 @@ model Ticket {
   status       TicketStatus @default(NEW)
   priorityId   String
   priority     Priority     @relation(fields: [priorityId], references: [id])
+  source       String       @default("INTERNAL")
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])

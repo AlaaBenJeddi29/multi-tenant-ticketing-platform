@@ -5,10 +5,10 @@ import { submitRequest } from "../controllers/public.controller.js";
 const router = Router();
 
 // Rate limiter for public submission endpoint
-// 10 requests per 15 minutes per IP
+// 5 requests per 15 minutes per IP
 const publicSubmissionLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 requests per windowMs
+  max: 5, // Limit each IP to 5 requests per windowMs
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
@@ -18,6 +18,6 @@ const publicSubmissionLimiter = rateLimit({
   },
 });
 
-router.post("/submit-request", publicSubmissionLimiter, submitRequest);
+router.post("/:organizationSlug/submit", publicSubmissionLimiter, submitRequest);
 
 export default router;

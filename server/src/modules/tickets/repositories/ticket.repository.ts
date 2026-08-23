@@ -18,6 +18,8 @@ export const ticketSelect = {
 
   status: true,
 
+  source: true,
+
   responseDueAt: true,
 
   resolutionDueAt: true,
@@ -128,6 +130,11 @@ export async function findTickets(
     } else {
       where.assignedToId = actualQuery.assignedToId;
     }
+  }
+
+  // Apply source filter
+  if (actualQuery.source !== undefined) {
+    where.source = actualQuery.source;
   }
 
   // Build orderBy

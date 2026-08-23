@@ -32,6 +32,11 @@ export const listTicketsQuerySchema = paginationQuerySchema.extend({
     .trim()
     .optional(),
 
+  source: z
+    .string()
+    .trim()
+    .optional(),
+
   sortBy: z
     .enum([
       "createdAt",
