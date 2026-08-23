@@ -111,12 +111,12 @@ export async function findUserByVerifiedResetCode(
 
 export async function findUserById(
   userId: string,
-  organizationId: string
+  organizationId: string | null
 ) {
   return prisma.user.findFirst({
     where: {
       id: userId,
-      organizationId,
+      ...(organizationId && { organizationId }),
     },
     select: {
       id: true,
@@ -125,6 +125,7 @@ export async function findUserById(
       email: true,
       role: true,
       organizationId: true,
+      isActive: true,
     },
   });
 }

@@ -7,11 +7,15 @@ import {
 } from "../mappers/dashboard.mapper.js";
 
 export async function getDashboard(
-  organizationId: string
+  organizationId: string,
+  role?: string,
+  userId?: string
 ) {
   const dashboard =
     await getDashboardOverview(
-      organizationId
+      organizationId,
+      role,
+      userId
     );
 
   return toDashboardOverviewResponse(

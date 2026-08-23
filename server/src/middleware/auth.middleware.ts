@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { verifyAccessToken } from "../lib/jwt.js";
+import { findUserById } from "../modules/auth/repositories/auth.repository.js";
 
 export interface JwtPayload {
   userId: string;
@@ -11,7 +12,7 @@ export interface AuthenticatedRequest extends Request {
   user?: JwtPayload;
 }
 
-export function authenticate(
+export async function authenticate(
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
@@ -26,6 +27,15 @@ export function authenticate(
 
   try {
     const payload = verifyAccessToken(token) as JwtPayload;
+
+    // Check if user is still active
+    const user = await findUserById(payload.userId, payload.organizationId);
+    
+    if (!user || !user.isActive) {
+      return res.status(403).json({
+        message: "Your account has been deactivated. Please contact your administrator.",
+      });
+    }
 
     req.user = payload;
 

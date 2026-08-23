@@ -1,8 +1,15 @@
 import { prisma } from "../../../lib/prisma.js";
 
 export async function getDashboardOverview(
-  organizationId: string
+  organizationId: string,
+  role?: string,
+  userId?: string
 ) {
+  // For AGENT role, only show tickets assigned to them
+  const agentFilter = role === "AGENT" && userId
+    ? { assignedToId: userId }
+    : {};
+
   const [
     totalTickets,
     newTickets,
@@ -23,6 +30,7 @@ export async function getDashboardOverview(
     prisma.ticket.count({
       where: {
         organizationId,
+        ...agentFilter,
       },
     }),
 
@@ -33,6 +41,7 @@ export async function getDashboardOverview(
       where: {
         organizationId,
         status: "NEW",
+        ...agentFilter,
       },
     }),
 
@@ -40,6 +49,7 @@ export async function getDashboardOverview(
       where: {
         organizationId,
         status: "IN_PROGRESS",
+        ...agentFilter,
       },
     }),
 
@@ -47,6 +57,7 @@ export async function getDashboardOverview(
       where: {
         organizationId,
         status: "WAITING_REQUESTER",
+        ...agentFilter,
       },
     }),
 
@@ -54,6 +65,7 @@ export async function getDashboardOverview(
       where: {
         organizationId,
         status: "RESOLVED",
+        ...agentFilter,
       },
     }),
 
@@ -61,6 +73,7 @@ export async function getDashboardOverview(
       where: {
         organizationId,
         status: "CLOSED",
+        ...agentFilter,
       },
     }),
 
@@ -71,6 +84,7 @@ export async function getDashboardOverview(
       where: {
         organizationId,
         responseBreached: true,
+        ...agentFilter,
       },
     }),
 
@@ -78,13 +92,14 @@ export async function getDashboardOverview(
       where: {
         organizationId,
         resolutionBreached: true,
+        ...agentFilter,
       },
     }),
 
     /*
-     * Unassigned tickets
+     * Unassigned tickets (only for ORG_ADMIN/SUPER_ADMIN)
      */
-    prisma.ticket.count({
+    role === "AGENT" ? 0 : prisma.ticket.count({
       where: {
         organizationId,
         assignedToId: null,
@@ -98,6 +113,7 @@ export async function getDashboardOverview(
       by: ["priorityId"],
       where: {
         organizationId,
+        ...agentFilter,
       },
       _count: {
         _all: true,
@@ -111,6 +127,7 @@ export async function getDashboardOverview(
       by: ["categoryId"],
       where: {
         organizationId,
+        ...agentFilter,
       },
       _count: {
         _all: true,
@@ -118,9 +135,9 @@ export async function getDashboardOverview(
     }),
 
     /*
-     * Tickets assigned to agents
+     * Tickets assigned to agents (only for ORG_ADMIN/SUPER_ADMIN)
      */
-    prisma.ticket.groupBy({
+    role === "AGENT" ? [] : prisma.ticket.groupBy({
       by: ["assignedToId"],
       where: {
         organizationId,

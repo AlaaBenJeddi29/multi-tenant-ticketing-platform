@@ -70,6 +70,10 @@ export async function login(data: LoginDto) {
     throw new AppError(401, "Invalid email address or password.");
   }
 
+  if (!user.isActive) {
+    throw new AppError(403, "Your account has been deactivated. Please contact your administrator.");
+  }
+
   const passwordMatches = await bcrypt.compare(
     data.password,
     user.passwordHash
@@ -189,12 +193,16 @@ export async function resetPassword(
 
 export async function getCurrentUser(
   userId: string,
-  organizationId: string
+  organizationId: string | null
 ) {
   const user = await findUserById(userId, organizationId);
 
   if (!user) {
     throw new AppError(404, "User not found.");
+  }
+
+  if (!user.isActive) {
+    throw new AppError(403, "Your account has been deactivated. Please contact your administrator.");
   }
 
   return {

@@ -16,9 +16,17 @@ export async function getDashboard(
   next: NextFunction
 ) {
   try {
+    if (!req.user?.organizationId) {
+      return res.status(400).json({
+        message: "Organization ID is required",
+      });
+    }
+
     const dashboard =
       await dashboardService.getDashboard(
-        req.user!.organizationId
+        req.user.organizationId,
+        req.user.role,
+        req.user.userId
       );
 
     return res
