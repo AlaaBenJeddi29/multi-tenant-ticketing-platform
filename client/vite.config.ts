@@ -5,9 +5,17 @@ import path from "node:path";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
- resolve: {
-  alias: {
-    "@": path.resolve(__dirname, "./src"),
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
   },
-},
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
+    },
+  },
 });

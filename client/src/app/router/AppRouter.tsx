@@ -49,6 +49,7 @@ const router = createBrowserRouter([
         element: <PublicLayout />,
         children: [
           { path: ROUTES.HOME, element: <HomePage /> },
+          { path: ROUTES.HOME_WITH_SLUG, element: <HomePage /> },
           { path: ROUTES.LOGIN, element: <LoginPage /> },
           { path: ROUTES.REGISTER, element: <RegisterPage /> },
           { path: ROUTES.FORGOT_PASSWORD, element: <ForgotPasswordPage /> },

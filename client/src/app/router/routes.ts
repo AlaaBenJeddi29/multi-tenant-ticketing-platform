@@ -1,5 +1,6 @@
 export const ROUTES = {
   HOME: "/",
+  HOME_WITH_SLUG: "/home/:organizationSlug",
   LOGIN: "/login",
   REGISTER: "/register",
   DASHBOARD: "/dashboard",

@@ -19,6 +19,7 @@ export default function TicketsListPage() {
   const [priorityId, setPriorityId] = useState<string | undefined>();
   const [categoryId, setCategoryId] = useState<string | undefined>();
   const [assignedToId, setAssignedToId] = useState<string | undefined>();
+  const [source, setSource] = useState<string | undefined>();
 
   // Fetch tickets with current filters
   const { data, isLoading } = useTickets({
@@ -31,6 +32,7 @@ export default function TicketsListPage() {
     priorityId,
     categoryId,
     assignedToId,
+    source,
   });
 
   // Fetch priorities for table filters
@@ -42,6 +44,7 @@ export default function TicketsListPage() {
     priorityId?: string | undefined;
     categoryId?: string | undefined;
     assignedToId?: string | undefined;
+    source?: string | undefined;
   }) => {
     if (filters.search !== undefined) {
       setSearch(filters.search);
@@ -61,6 +64,10 @@ export default function TicketsListPage() {
     }
     if (filters.assignedToId !== undefined) {
       setAssignedToId(filters.assignedToId);
+      setPage(1);
+    }
+    if (filters.source !== undefined) {
+      setSource(filters.source);
       setPage(1);
     }
   };
@@ -107,6 +114,7 @@ export default function TicketsListPage() {
           priorityId,
           categoryId,
           assignedToId,
+          source,
         }}
         onFiltersChange={handleFiltersChange}
         onPageChange={handlePageChange}

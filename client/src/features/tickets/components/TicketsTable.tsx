@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, Globe } from "lucide-react";
 
 import {
   Table,
@@ -37,6 +37,7 @@ interface TicketsTableProps {
     priorityId?: string;
     categoryId?: string;
     assignedToId?: string;
+    source?: string;
   };
   onFiltersChange: (filters: {
     search?: string;
@@ -44,6 +45,7 @@ interface TicketsTableProps {
     priorityId?: string | undefined;
     categoryId?: string | undefined;
     assignedToId?: string | undefined;
+    source?: string | undefined;
   }) => void;
   onPageChange: (page: number) => void;
   priorities: Array<{ id: string; name: string; color: string }>;
@@ -209,6 +211,22 @@ export function TicketsTable({
             ))}
           </SelectContent>
         </Select>
+
+        {/* Portal Filter */}
+        <Select
+          value={filters.source || "all"}
+          onValueChange={(value) =>
+            onFiltersChange({ source: value === "all" ? undefined : value })
+          }
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Source" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Sources</SelectItem>
+            <SelectItem value="PORTAL">Portal</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Table */}
@@ -247,7 +265,17 @@ export function TicketsTable({
                   <TableCell className="font-medium">
                     {ticket.ticketNumber}
                   </TableCell>
-                  <TableCell>{ticket.title}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {ticket.title}
+                      {ticket.source === "PORTAL" && (
+                        <Badge variant="secondary" className="text-xs">
+                          <Globe className="mr-1 size-3" />
+                          Portal
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <Badge variant={STATUS_BADGE_VARIANT[ticket.status]}>
                       {ticket.status.replace(/_/g, " ")}

@@ -4,6 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
@@ -114,6 +115,29 @@ export default function TicketDetailPage() {
 
   return (
     <div className="container mx-auto max-w-5xl p-8">
+      {/* Unassigned Portal Ticket Banner */}
+      {ticket.source === "PORTAL" && !ticket.assignedTo && (
+        <Alert className="mb-6 border-amber-200 bg-amber-50 text-amber-900">
+          <AlertTriangle className="size-5 text-amber-600" />
+          <AlertTitle>Unassigned Portal Ticket</AlertTitle>
+          <AlertDescription className="flex items-start justify-between gap-4">
+            <span>
+              This ticket was submitted through the public portal and has not been assigned yet. Assign it to an agent to start working on it.
+            </span>
+            {isAdmin && (
+              <Button
+                onClick={() => document.getElementById("assignee-select")?.scrollIntoView({ behavior: "smooth" })}
+                variant="outline"
+                size="sm"
+                className="border-amber-300 text-amber-700 hover:bg-amber-100 flex-shrink-0"
+              >
+                Assign Now
+              </Button>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Header */}
       <div className="mb-8">
         <Button
@@ -220,7 +244,7 @@ export default function TicketDetailPage() {
 
           {/* Assignment Control (ORG_ADMIN only) */}
           {isAdmin && (
-            <div className="rounded-lg border border-border bg-card p-6">
+            <div id="assignee-select" className="rounded-lg border border-border bg-card p-6">
               <h3 className="text-sm font-semibold mb-3">Assigned To</h3>
               <Select
                 value={ticket.assignedTo?.id || "unassigned"}
@@ -288,12 +312,23 @@ export default function TicketDetailPage() {
                 Requester
               </div>
               <div>
-                <div className="font-medium">
-                  {ticket.requester.firstName} {ticket.requester.lastName}
-                </div>
-                <div className="text-sm text-muted-foreground">{ticket.requester.email}</div>
+                {ticket.requester.lastName ? (
+                  <div className="font-medium">
+                    {ticket.requester.firstName} {ticket.requester.lastName}
+                  </div>
+                ) : (
+                  <div className="font-medium">{ticket.requester.email}</div>
+                )}
+                {ticket.requester.lastName && (
+                  <div className="text-sm text-muted-foreground">{ticket.requester.email}</div>
+                )}
                 {ticket.requester.company && (
                   <div className="text-sm text-muted-foreground">{ticket.requester.company}</div>
+                )}
+                {ticket.source === "PORTAL" && (
+                  <div className="text-xs text-muted-foreground italic mt-1">
+                    Submitted via public portal
+                  </div>
                 )}
               </div>
             </div>

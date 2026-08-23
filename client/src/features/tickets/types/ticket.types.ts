@@ -96,6 +96,7 @@ export interface Ticket {
   title: string;
   description: string | null;
   status: TicketStatus;
+  source: string;
   priority: TicketPriority;
   category: TicketCategory;
   requester: TicketRequester;
@@ -162,6 +163,7 @@ export interface TicketListParams extends PaginationParams {
   categoryId?: string;
   assignedToId?: string; // Can be "unassigned" for filtering unassigned tickets
   requesterId?: string;
+  source?: string;
   sortBy?:
     | "createdAt"
     | "updatedAt"
