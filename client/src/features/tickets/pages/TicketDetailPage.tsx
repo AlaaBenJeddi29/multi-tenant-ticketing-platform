@@ -53,6 +53,11 @@ export default function TicketDetailPage() {
     isActive: true,
   });
 
+  // Filter out current user from assignee list
+  const filteredUsers = usersData?.data?.filter(
+    (u) => u.id !== user?.id
+  ) || [];
+
   const handleStatusChange = (status: TicketStatus) => {
     if (ticket) {
       updateStatusMutation.mutate({ id: ticket.id, input: { status } });
@@ -226,7 +231,7 @@ export default function TicketDetailPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="unassigned">Unassigned</SelectItem>
-                  {usersData?.data.map((user) => (
+                  {filteredUsers.map((user) => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.firstName} {user.lastName}
                     </SelectItem>

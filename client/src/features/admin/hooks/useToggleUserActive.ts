@@ -11,7 +11,7 @@ export function useToggleUserActive() {
     mutationFn: ({ userId, isActive }: { userId: string; isActive: boolean }) =>
       toggleUserActive(userId, isActive),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: adminKeys.users() });
+      queryClient.invalidateQueries({ queryKey: adminKeys.all });
       toast.success("User status updated successfully");
     },
     onError: (error: any) => {

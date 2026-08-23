@@ -22,11 +22,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { useAuth } from "@/features/auth/context/AuthContext";
 import { useAdminUsers } from "../hooks/useAdminUsers";
 import { useAdminOrganizations } from "../hooks/useAdminOrganizations";
 import { useToggleUserActive } from "../hooks/useToggleUserActive";
 
 export default function AdminUsersPage() {
+  const { user } = useAuth();
   const [page, setPage] = useState(1);
   const pageSize = 15;
   const [search, setSearch] = useState("");
@@ -38,7 +40,7 @@ export default function AdminUsersPage() {
   const { data: orgsData } = useAdminOrganizations({ page: 1, pageSize: 100 });
   const toggleUserActiveMutation = useToggleUserActive();
 
-  const users = data?.data || [];
+  const users = data?.data?.filter((u: any) => u.id !== user?.id) || [];
   const total = data?.total || 0;
   const totalPages = Math.ceil(total / pageSize);
   const organizations = orgsData?.data || [];

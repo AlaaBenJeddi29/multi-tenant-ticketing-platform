@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/features/auth/context/AuthContext";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 
 import type { Ticket, TicketStatus } from "../types/ticket.types";
@@ -69,6 +70,7 @@ export function TicketsTable({
   priorities,
 }: TicketsTableProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Debounced search input
   const [searchInput, setSearchInput] = useState(filters.search);
@@ -98,6 +100,11 @@ export function TicketsTable({
     sortOrder: "asc",
     isActive: true,
   });
+
+  // Filter out current user from assignee list
+  const filteredUsers = usersData?.data?.filter(
+    (u) => u.id !== user?.id
+  ) || [];
 
   const handleRowClick = (ticketId: string) => {
     navigate(`/tickets/${ticketId}`);
@@ -195,7 +202,7 @@ export function TicketsTable({
           <SelectContent>
             <SelectItem value="all">All Assignees</SelectItem>
             <SelectItem value="unassigned">Unassigned</SelectItem>
-            {usersData?.data.map((user) => (
+            {filteredUsers.map((user) => (
               <SelectItem key={user.id} value={user.id}>
                 {user.firstName} {user.lastName}
               </SelectItem>

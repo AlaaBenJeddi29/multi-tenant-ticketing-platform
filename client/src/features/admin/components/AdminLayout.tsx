@@ -14,6 +14,7 @@ import { useAuth } from "@/features/auth/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useLogout } from "@/features/auth/hooks/useLogout";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 import { cn } from "@/lib/utils";
 
@@ -129,13 +130,13 @@ export default function AdminLayout() {
 
         {/* User section */}
         <div className="border-t border-sidebar-border p-4">
-          <div className="mb-3 px-2">
+          <div className="mb-3 flex flex-col gap-3 px-2">
             <div className="flex items-center gap-3">
               <div className="flex size-8 items-center justify-center rounded-full bg-sidebar-primary text-sm font-medium text-sidebar-primary-foreground">
                 {user?.firstName?.[0]}
                 {user?.lastName?.[0]}
               </div>
-              <div className="flex-1 overflow-hidden">
+              <div className="flex-1 min-w-0 overflow-hidden">
                 <p className="truncate text-sm font-medium text-sidebar-foreground">
                   {user?.firstName} {user?.lastName}
                 </p>
@@ -143,6 +144,9 @@ export default function AdminLayout() {
                   {user?.email}
                 </p>
               </div>
+            </div>
+            <div className="flex items-center justify-end gap-1">
+              <ThemeToggle />
             </div>
           </div>
 

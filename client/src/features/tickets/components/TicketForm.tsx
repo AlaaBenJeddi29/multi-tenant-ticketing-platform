@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 
+import { useAuth } from "@/features/auth/context/AuthContext";
 import { ticketFormSchema, type TicketFormValues } from "../schemas/ticket.schema";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { usePriorities } from "@/features/priorities/hooks/usePriorities";
@@ -36,6 +37,7 @@ export function TicketForm({
   isSubmitting,
 }: TicketFormProps) {
   const isEditMode = !!ticket;
+  const { user } = useAuth();
 
   const {
     register,
@@ -87,6 +89,9 @@ export function TicketForm({
     isActive: true,
     role: "AGENT",
   });
+
+  // Filter out current user from assignee list
+  const filteredUsers = usersData?.data?.filter((u) => u.id !== user?.id) || [];
 
   // Prefill form in edit mode
   useEffect(() => {
@@ -244,7 +249,7 @@ export function TicketForm({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="">Unassigned</SelectItem>
-              {usersData?.data.map((user) => (
+              {filteredUsers.map((user) => (
                 <SelectItem key={user.id} value={user.id}>
                   {user.firstName} {user.lastName}
                 </SelectItem>

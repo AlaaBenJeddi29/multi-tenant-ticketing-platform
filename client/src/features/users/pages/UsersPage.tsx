@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/features/auth/context/AuthContext";
 import { useUsersList } from "../hooks/useUsersList";
 import { UsersTable } from "../components/UsersTable";
 import { CreateUserDialog } from "../components/CreateUserDialog";
@@ -14,6 +15,7 @@ import type { User, UserRole } from "../types/user.types";
  * Access control is enforced at the route level via RequireRole
  */
 export default function UsersPage() {
+  const { user } = useAuth();
 
   // State for query parameters
   const [page, setPage] = useState(1);
@@ -34,6 +36,9 @@ export default function UsersPage() {
     search: search || undefined,
     role: roleFilter,
   });
+
+  // Filter out current user from the list
+  const filteredUsers = data?.data?.filter((u) => u.id !== user?.id) || [];
 
   const handleNewUser = () => {
     setCreateDialogOpen(true);
@@ -76,7 +81,7 @@ export default function UsersPage() {
 
       {/* Table */}
       <UsersTable
-        users={data?.data || []}
+        users={filteredUsers}
         meta={
           data?.meta || {
             page: 1,

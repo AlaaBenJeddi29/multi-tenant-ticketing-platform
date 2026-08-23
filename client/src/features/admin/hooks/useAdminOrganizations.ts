@@ -9,7 +9,7 @@ export function useAdminOrganizations(params: {
   search?: string;
 }) {
   return useQuery({
-    queryKey: adminKeys.organizations(),
+    queryKey: adminKeys.organizations(params),
     queryFn: () => getAdminOrganizations(params),
   });
 }

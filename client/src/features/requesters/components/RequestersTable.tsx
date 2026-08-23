@@ -40,7 +40,7 @@ export function RequestersTable({
   onEditRequester,
 }: RequestersTableProps) {
   const { user } = useAuth();
-  const isAdmin = user?.role === "ORG_ADMIN" || user?.role === "SUPER_ADMIN";
+  const canManageRequesters = user?.role === "ORG_ADMIN" || user?.role === "SUPER_ADMIN" || user?.role === "AGENT";
 
   const activateMutation = useActivateRequester();
   const deactivateMutation = useDeactivateRequester();
@@ -88,14 +88,14 @@ export function RequestersTable({
               <TableHead>Phone</TableHead>
               <TableHead>Company</TableHead>
               <TableHead>Status</TableHead>
-              {isAdmin && <TableHead className="text-right">Actions</TableHead>}
+              {canManageRequesters && <TableHead className="text-right">Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading && requesters.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={isAdmin ? 6 : 5}
+                  colSpan={canManageRequesters ? 6 : 5}
                   className="h-24 text-center text-muted-foreground"
                 >
                   Loading requesters...
@@ -104,7 +104,7 @@ export function RequestersTable({
             ) : requesters.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={isAdmin ? 6 : 5}
+                  colSpan={canManageRequesters ? 6 : 5}
                   className="h-24 text-center text-muted-foreground"
                 >
                   No requesters found.
@@ -124,7 +124,7 @@ export function RequestersTable({
                       {requester.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </TableCell>
-                  {isAdmin && (
+                  {canManageRequesters && (
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button

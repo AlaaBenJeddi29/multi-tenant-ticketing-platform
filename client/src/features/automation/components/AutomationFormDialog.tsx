@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert } from "@/components/ui/alert";
+import { useAuth } from "@/features/auth/context/AuthContext";
 import { usePriorities } from "@/features/priorities/hooks/usePriorities";
 import { useUsersList } from "@/features/users/hooks/useUsersList";
 import { useCreateAutomationRule } from "../hooks/useCreateAutomationRule";
@@ -40,6 +41,7 @@ import type { TicketStatus } from "@/features/tickets/types/ticket.types";
 const TICKET_STATUSES: TicketStatus[] = [
   "NEW",
   "IN_PROGRESS",
+  "WAITING_REQUESTER",
   "RESOLVED",
   "CLOSED",
 ];
@@ -47,6 +49,7 @@ const TICKET_STATUSES: TicketStatus[] = [
 const STATUS_LABELS: Record<TicketStatus, string> = {
   NEW: "New",
   IN_PROGRESS: "In Progress",
+  WAITING_REQUESTER: "Waiting Requester",
   RESOLVED: "Resolved",
   CLOSED: "Closed",
 };
@@ -63,6 +66,7 @@ export function AutomationFormDialog({
   rule,
 }: AutomationFormDialogProps) {
   const isEditing = !!rule;
+  const { user } = useAuth();
   const createMutation = useCreateAutomationRule();
   const updateMutation = useUpdateAutomationRule();
 
@@ -78,6 +82,11 @@ export function AutomationFormDialog({
     isActive: true,
     role: "AGENT",
   });
+
+  // Filter out current user from agents list
+  const filteredAgents = agentsData?.data?.filter(
+    (u) => u.id !== user?.id
+  ) || [];
 
   const {
     register,
@@ -271,7 +280,7 @@ export function AutomationFormDialog({
                   <SelectValue placeholder="Select agent" />
                 </SelectTrigger>
                 <SelectContent>
-                  {agentsData?.data.map((agent) => (
+                  {filteredAgents.map((agent) => (
                     <SelectItem key={agent.id} value={agent.id}>
                       {agent.firstName} {agent.lastName}
                     </SelectItem>

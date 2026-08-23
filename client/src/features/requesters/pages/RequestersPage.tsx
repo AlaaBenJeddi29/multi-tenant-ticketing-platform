@@ -11,7 +11,7 @@ import type { Requester } from "../types/requester.types";
 
 export default function RequestersPage() {
   const { user } = useAuth();
-  const isAdmin = user?.role === "ORG_ADMIN" || user?.role === "SUPER_ADMIN";
+  const canManageRequesters = user?.role === "ORG_ADMIN" || user?.role === "SUPER_ADMIN" || user?.role === "AGENT";
 
   // State for query parameters
   const [page, setPage] = useState(1);
@@ -59,7 +59,7 @@ export default function RequestersPage() {
             Manage requesters and their contact information
           </p>
         </div>
-        {isAdmin && (
+        {canManageRequesters && (
           <Button onClick={handleNewRequester}>
             <Plus className="mr-2 size-4" />
             New Requester
@@ -86,7 +86,7 @@ export default function RequestersPage() {
       />
 
       {/* Form Dialog */}
-      {isAdmin && (
+      {canManageRequesters && (
         <RequesterFormDialog
           open={dialogOpen}
           onOpenChange={setDialogOpen}

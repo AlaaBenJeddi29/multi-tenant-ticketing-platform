@@ -11,7 +11,7 @@ export function useAdminUsers(params: {
   role?: string;
 }) {
   return useQuery({
-    queryKey: adminKeys.users(),
+    queryKey: adminKeys.users(params),
     queryFn: () => getAdminUsers(params),
   });
 }

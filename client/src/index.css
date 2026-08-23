@@ -83,6 +83,33 @@
     --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* Platform Admin - Green Theme */
+[data-role="SUPER_ADMIN"] {
+    --primary: oklch(0.55 0.18 142);
+    --primary-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.55 0.18 142);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --ring: oklch(0.55 0.18 142);
+}
+
+/* Org Admin - Blue Theme */
+[data-role="ORG_ADMIN"] {
+    --primary: oklch(0.55 0.18 250);
+    --primary-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.55 0.18 250);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --ring: oklch(0.55 0.18 250);
+}
+
+/* Agent - White/Black Theme (Light Mode) */
+[data-role="AGENT"] {
+    --primary: oklch(0.145 0 0);
+    --primary-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.145 0 0);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --ring: oklch(0.145 0 0);
+}
+
 .dark {
     --background: oklch(0.145 0 0);
     --foreground: oklch(0.985 0 0);
@@ -115,6 +142,33 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* Platform Admin - Green Theme (Dark Mode) */
+.dark[data-role="SUPER_ADMIN"] {
+    --primary: oklch(0.65 0.18 142);
+    --primary-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.65 0.18 142);
+    --sidebar-primary-foreground: oklch(0.145 0 0);
+    --ring: oklch(0.65 0.18 142);
+}
+
+/* Org Admin - Blue Theme (Dark Mode) */
+.dark[data-role="ORG_ADMIN"] {
+    --primary: oklch(0.65 0.18 250);
+    --primary-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.65 0.18 250);
+    --sidebar-primary-foreground: oklch(0.145 0 0);
+    --ring: oklch(0.65 0.18 250);
+}
+
+/* Agent - White Theme (Dark Mode) */
+.dark[data-role="AGENT"] {
+    --primary: oklch(0.985 0 0);
+    --primary-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.985 0 0);
+    --sidebar-primary-foreground: oklch(0.145 0 0);
+    --ring: oklch(0.985 0 0);
 }
 
 @layer base {
