@@ -1,5 +1,4 @@
-// Simple toast hook using browser alert for now
-// TODO: Replace with proper toast library (e.g., sonner, react-hot-toast)
+import { toast as sonnerToast } from "sonner";
 
 interface ToastOptions {
   title: string;
@@ -9,12 +8,14 @@ interface ToastOptions {
 
 export function useToast() {
   const toast = ({ title, description, variant }: ToastOptions) => {
-    const message = description ? `${title}\n\n${description}` : title;
-    
     if (variant === "destructive") {
-      alert(`❌ ${message}`);
+      sonnerToast.error(title, {
+        description,
+      });
     } else {
-      alert(`✅ ${message}`);
+      sonnerToast.success(title, {
+        description,
+      });
     }
   };
 

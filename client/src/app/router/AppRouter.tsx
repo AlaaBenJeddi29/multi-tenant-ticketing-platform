@@ -51,13 +51,14 @@ const router = createBrowserRouter([
           { path: ROUTES.HOME, element: <HomePage /> },
           { path: "/home", element: <HomePage /> },
           { path: ROUTES.HOME_WITH_SLUG, element: <HomePage /> },
-          { path: ROUTES.LOGIN, element: <LoginPage /> },
-          { path: ROUTES.REGISTER, element: <RegisterPage /> },
-          { path: ROUTES.FORGOT_PASSWORD, element: <ForgotPasswordPage /> },
-          { path: ROUTES.VERIFY_RESET_CODE, element: <VerifyResetCodePage /> },
-          { path: ROUTES.RESET_PASSWORD, element: <ResetPasswordPage /> },
         ],
       },
+      // Auth routes (full viewport width, no PublicLayout centering)
+      { path: ROUTES.LOGIN, element: <LoginPage /> },
+      { path: ROUTES.REGISTER, element: <RegisterPage /> },
+      { path: ROUTES.FORGOT_PASSWORD, element: <ForgotPasswordPage /> },
+      { path: ROUTES.VERIFY_RESET_CODE, element: <VerifyResetCodePage /> },
+      { path: ROUTES.RESET_PASSWORD, element: <ResetPasswordPage /> },
       // Standalone public route (no layout)
       { path: ROUTES.SUBMIT_REQUEST, element: <SubmitRequestPage /> },
       // Protected routes

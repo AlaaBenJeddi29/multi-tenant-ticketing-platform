@@ -8,20 +8,17 @@ interface Props {
 export default function AuthLayout({ children }: Props) {
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-background">
-
-      {/* Left branding section */}
-      <section className="relative hidden lg:flex bg-primary/10">
+      {/* Left branding section - 50% width, hidden on mobile/tablet */}
+      <section className="relative hidden lg:flex bg-primary/10 overflow-hidden">
         <BrandPanel />
       </section>
 
-      {/* Right authentication section */}
-      <section className="flex items-center justify-center p-6 sm:p-10 bg-background">
-        {/* ADD THIS WRAPPER DIV WITH max-w-sm w-full */}
-        <div className="w-full max-w-sm">
+      {/* Right authentication section - full width on mobile, 50% on desktop */}
+      <section className="flex items-center justify-center bg-background p-4 sm:p-6 lg:p-10 overflow-y-auto">
+        <div className="w-full max-w-md">
           {children}
         </div>
       </section>
-
     </div>
   );
 }

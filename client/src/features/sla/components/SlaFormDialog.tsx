@@ -26,6 +26,7 @@ import { slaFormSchema, type SlaFormValues } from "../schemas/sla.schema";
 import { useCreateSla } from "../hooks/useCreateSla";
 import { useUpdateSla } from "../hooks/useUpdateSla";
 import { usePriorities } from "@/features/priorities/hooks/usePriorities";
+import { useToast } from "@/hooks/use-toast";
 
 import type { Sla } from "../types/sla.types";
 
@@ -43,6 +44,7 @@ export function SlaFormDialog({
   existingSlas,
 }: SlaFormDialogProps) {
   const isEditMode = !!sla;
+  const { toast } = useToast();
 
   const createMutation = useCreateSla();
   const updateMutation = useUpdateSla();
@@ -134,9 +136,11 @@ export function SlaFormDialog({
     } catch (error: any) {
       // Surface 409 error cleanly
       if (error?.response?.status === 409) {
-        alert(
-          "This priority already has an SLA. Another administrator may have created it while you were editing. Please refresh the page."
-        );
+        toast({
+          title: "SLA Conflict",
+          description: "This priority already has an SLA. Another administrator may have created it while you were editing. Please refresh the page.",
+          variant: "destructive",
+        });
       } else {
         // Error is handled by React Query, just log for debugging
         console.error("Failed to save SLA:", error);
