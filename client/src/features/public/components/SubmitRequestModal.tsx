@@ -153,7 +153,7 @@ export function SubmitRequestModal({ isOpen, onClose, organizationSlug: urlSlug 
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-[520px]">
+      <DialogContent className="max-w-[520px] max-h-[90vh] overflow-y-auto">
         {view === "form" ? (
           <>
             <DialogHeader>
