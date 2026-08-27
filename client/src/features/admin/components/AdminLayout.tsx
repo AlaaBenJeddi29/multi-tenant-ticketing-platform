@@ -147,6 +147,17 @@ export default function AdminLayout() {
             </div>
             <div className="flex items-center justify-end gap-1">
               <ThemeToggle />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-9"
+                asChild
+                title="Settings"
+              >
+                <NavLink to="/settings">
+                  <Settings className="size-4" />
+                </NavLink>
+              </Button>
             </div>
           </div>
 

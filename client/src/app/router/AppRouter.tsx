@@ -37,6 +37,7 @@ import AdminAnalyticsPage from "@/features/admin/pages/AdminAnalyticsPage";
 import AdminActivityPage from "@/features/admin/pages/AdminActivityPage";
 import AdminSystemHealthPage from "@/features/admin/pages/AdminSystemHealthPage";
 import AdminSettingsPage from "@/features/admin/pages/AdminSettingsPage";
+import SettingsPage from "@/features/settings/pages/SettingsPage";
 
 import { ROUTES } from "./routes";
 
@@ -80,6 +81,7 @@ const router = createBrowserRouter([
                   { path: ROUTES.ADMIN_ACTIVITY, element: <AdminActivityPage /> },
                   { path: ROUTES.ADMIN_SYSTEM_HEALTH, element: <AdminSystemHealthPage /> },
                   { path: ROUTES.ADMIN_SETTINGS, element: <AdminSettingsPage /> },
+                  { path: ROUTES.SETTINGS, element: <SettingsPage /> },
                 ],
               },
             ],
@@ -101,6 +103,7 @@ const router = createBrowserRouter([
                   { path: ROUTES.TICKET_DETAIL, element: <TicketDetailPage /> },
                   { path: ROUTES.SLAS, element: <SlasPage /> },
                   { path: ROUTES.NOTIFICATIONS, element: <NotificationsPage /> },
+                  { path: ROUTES.SETTINGS, element: <SettingsPage /> },
                   // ORG_ADMIN-only routes
                   {
                     element: <RequireRole roles={["ORG_ADMIN"]} />,

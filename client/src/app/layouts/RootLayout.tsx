@@ -8,6 +8,8 @@ export default function RootLayout() {
   useEffect(() => {
     if (user?.role) {
       document.documentElement.setAttribute("data-role", user.role);
+    } else {
+      document.documentElement.removeAttribute("data-role");
     }
   }, [user?.role]);
 

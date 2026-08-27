@@ -14,6 +14,7 @@ import {
   History,
   ChevronLeft,
   ChevronRight,
+  Settings,
 } from "lucide-react";
 
 import { useAuth } from "@/features/auth/context/AuthContext";
@@ -207,6 +208,17 @@ export function AppSidebar() {
           )}>
             <ThemeToggle />
             <NotificationBell />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-9"
+              asChild
+              title="Settings"
+            >
+              <NavLink to="/settings">
+                <Settings className="size-4" />
+              </NavLink>
+            </Button>
           </div>
         </div>
 

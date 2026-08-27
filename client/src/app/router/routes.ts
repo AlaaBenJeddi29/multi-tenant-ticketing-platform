@@ -24,6 +24,7 @@ export const ROUTES = {
   AUTOMATION_EXECUTIONS: "/automation/executions",
   USERS: "/users",
   NOTIFICATIONS: "/notifications",
+  SETTINGS: "/settings",
   
   // Admin routes - SUPER_ADMIN only
   ADMIN_DASHBOARD: "/admin/dashboard",
