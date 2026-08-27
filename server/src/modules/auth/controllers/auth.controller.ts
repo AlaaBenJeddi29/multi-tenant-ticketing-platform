@@ -8,6 +8,8 @@ import { accessTokenCookie, refreshTokenCookie } from "../../../lib/cookies.js";
 import { forgotPasswordSchema } from "../dto/forgot-password.dto.js";
 import { verifyResetCodeSchema } from "../dto/verify-reset-code.dto.js";
 import { resetPasswordSchema } from "../dto/reset-password.dto.js";
+import { changePasswordSchema } from "../dto/change-password.dto.js";
+import { updateProfileSchema } from "../dto/update-profile.dto.js";
 import {
   generateRefreshToken,
   storeRefreshToken,
@@ -221,6 +223,111 @@ export async function resetPassword(
       body.code,
       body.password
     );
+
+    return res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getProfile(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const profile = await authService.getProfile(req.user!.userId);
+
+    return res.status(200).json(profile);
+  } catch (error) {
+    console.error("Error fetching profile:", error);
+    next(error);
+  }
+}
+
+export async function updateProfile(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const data = updateProfileSchema.parse(req.body);
+
+    const profile = await authService.updateProfile(
+      req.user!.userId,
+      data
+    );
+
+    return res.status(200).json(profile);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function changePassword(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const body = changePasswordSchema.parse(req.body);
+
+    const result = await authService.changePassword(
+      req.user!.userId,
+      body.currentPassword,
+      body.newPassword
+    );
+
+    return res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getSessions(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const sessions = await authService.getSessions(req.user!.userId);
+
+    return res.status(200).json(sessions);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function revokeSession(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const { sessionId } = req.params;
+
+    if (typeof sessionId !== "string") {
+      return res.status(400).json({ message: "Invalid session ID" });
+    }
+
+    const result = await authService.revokeSessionById(
+      sessionId,
+      req.user!.userId
+    );
+
+    return res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function revokeAllSessions(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const result = await authService.revokeAllUserSessions(req.user!.userId);
 
     return res.status(200).json(result);
   } catch (error) {

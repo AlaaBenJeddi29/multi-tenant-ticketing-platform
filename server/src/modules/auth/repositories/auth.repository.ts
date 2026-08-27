@@ -129,3 +129,121 @@ export async function findUserById(
     },
   });
 }
+
+export async function updateLastLoginAt(userId: string) {
+  return prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      lastLoginAt: new Date(),
+    },
+  });
+}
+
+export async function updateUserProfile(
+  userId: string,
+  data: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    avatarUrl?: string;
+  }
+) {
+  return prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data,
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      phone: true,
+      avatarUrl: true,
+      role: true,
+      organizationId: true,
+      createdAt: true,
+      lastLoginAt: true,
+    },
+  });
+}
+
+export async function getUserProfile(userId: string) {
+  return prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      phone: true,
+      avatarUrl: true,
+      role: true,
+      organizationId: true,
+      createdAt: true,
+      lastLoginAt: true,
+    },
+  });
+}
+
+export async function getUserWithPasswordHash(userId: string) {
+  return prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      id: true,
+      passwordHash: true,
+    },
+  });
+}
+
+export async function getUserSessions(userId: string) {
+  return prisma.refreshToken.findMany({
+    where: {
+      userId,
+      revokedAt: null,
+      expiresAt: {
+        gt: new Date(),
+      },
+    },
+    select: {
+      id: true,
+      createdAt: true,
+      expiresAt: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
+
+export async function revokeSession(tokenId: string, userId: string) {
+  return prisma.refreshToken.updateMany({
+    where: {
+      id: tokenId,
+      userId,
+      revokedAt: null,
+    },
+    data: {
+      revokedAt: new Date(),
+    },
+  });
+}
+
+export async function revokeAllSessions(userId: string) {
+  return prisma.refreshToken.updateMany({
+    where: {
+      userId,
+      revokedAt: null,
+    },
+    data: {
+      revokedAt: new Date(),
+    },
+  });
+}
+

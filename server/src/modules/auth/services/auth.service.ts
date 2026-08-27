@@ -15,6 +15,13 @@ import {
   findUserByVerifiedResetCode,
   updatePassword,
   findUserById,
+  updateLastLoginAt,
+  getUserProfile,
+  updateUserProfile,
+  getUserWithPasswordHash,
+  getUserSessions,
+  revokeSession,
+  revokeAllSessions,
 } from "../repositories/auth.repository.js";
 import { LoginDto } from "../dto/login.dto.js";
 
@@ -88,6 +95,9 @@ export async function login(data: LoginDto) {
     organizationId: user.organizationId,
     role: user.role,
   });
+
+  // Update last login time
+  await updateLastLoginAt(user.id);
 
   return {
     token,
@@ -212,5 +222,95 @@ export async function getCurrentUser(
     email: user.email,
     role: user.role,
     organizationId: user.organizationId,
+  };
+}
+
+export async function getProfile(userId: string) {
+  const user = await getUserProfile(userId);
+
+  if (!user) {
+    throw new AppError(404, "User not found.");
+  }
+
+  return {
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    phone: user.phone,
+    avatarUrl: user.avatarUrl,
+    role: user.role,
+    organizationId: user.organizationId,
+    createdAt: user.createdAt.toISOString(),
+    lastLoginAt: user.lastLoginAt ? user.lastLoginAt.toISOString() : null,
+  };
+}
+
+export async function updateProfile(
+  userId: string,
+  data: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    avatarUrl?: string;
+  }
+) {
+  const user = await updateUserProfile(userId, data);
+
+  return user;
+}
+
+export async function changePassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string
+) {
+  const user = await getUserWithPasswordHash(userId);
+
+  if (!user) {
+    throw new AppError(404, "User not found.");
+  }
+
+  const passwordMatches = await bcrypt.compare(
+    currentPassword,
+    user.passwordHash
+  );
+
+  if (!passwordMatches) {
+    throw new AppError(401, "Current password is incorrect.");
+  }
+
+  if (currentPassword === newPassword) {
+    throw new AppError(400, "New password must be different from current password.");
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+
+  await updatePassword(userId, passwordHash);
+
+  return {
+    message: "Password changed successfully.",
+  };
+}
+
+export async function getSessions(userId: string) {
+  const sessions = await getUserSessions(userId);
+
+  return sessions;
+}
+
+export async function revokeSessionById(sessionId: string, userId: string) {
+  await revokeSession(sessionId, userId);
+
+  return {
+    message: "Session revoked successfully.",
+  };
+}
+
+export async function revokeAllUserSessions(userId: string) {
+  await revokeAllSessions(userId);
+
+  return {
+    message: "All sessions revoked successfully.",
   };
 }
