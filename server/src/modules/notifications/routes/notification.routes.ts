@@ -3,7 +3,6 @@ import { Router } from "express";
 import {
   getNotificationsHandler,
   getNotificationHandler,
-  createNotificationHandler,
   markNotificationAsReadHandler,
   markAllNotificationsAsReadHandler,
   getUnreadCountHandler,
@@ -32,12 +31,6 @@ router.get(
 router.get(
   "/:id",
   getNotificationHandler
-);
-
-// POST /api/notifications
-router.post(
-  "/",
-  createNotificationHandler
 );
 
 // PATCH /api/notifications/:id/read

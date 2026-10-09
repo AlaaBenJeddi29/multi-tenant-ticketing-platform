@@ -66,11 +66,15 @@ export async function findComments(
 }
 
 export function findCommentById(
-  id: string
+  id: string,
+  organizationId: string
 ) {
-  return prisma.ticketComment.findUnique({
+  return prisma.ticketComment.findFirst({
     where: {
       id,
+      ticket: {
+        organizationId,
+      },
     },
 
     select: commentSelect,

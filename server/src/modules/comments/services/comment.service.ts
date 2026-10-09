@@ -102,11 +102,12 @@ export async function createNewComment(
 
 export async function editComment(
   id: string,
+  organizationId: string,
   userId: string,
   role: string,
   dto: UpdateCommentDto
 ) {
-  const comment = await findCommentById(id);
+  const comment = await findCommentById(id, organizationId);
 
   if (!comment) {
     throw new AppError(404, "Comment not found.");
@@ -125,10 +126,11 @@ export async function editComment(
 
 export async function removeComment(
   id: string,
+  organizationId: string,
   userId: string,
   role: string
 ) {
-  const comment = await findCommentById(id);
+  const comment = await findCommentById(id, organizationId);
 
   if (!comment) {
     throw new AppError(404, "Comment not found.");

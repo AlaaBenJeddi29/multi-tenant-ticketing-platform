@@ -4,6 +4,7 @@ import type {
 } from "express";
 
 import { requireParam } from "../../../lib/params.js";
+import { requireOrganizationId } from "../../../lib/request.js";
 
 import type {
   AuthenticatedRequest,
@@ -35,7 +36,7 @@ export async function getPriorities(
 
     const priorities =
       await prioritiesService.getPriorities(
-        req.user!.organizationId,
+        requireOrganizationId(req),
         query
       );
 
@@ -54,7 +55,7 @@ export async function getPriority(
     const priority =
       await prioritiesService.getPriorityById(
         requireParam(req.params.id, "id"),
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.status(200).json(priority);
@@ -75,7 +76,7 @@ export async function createPriority(
     const priority =
       await prioritiesService.createNewPriority(
         body,
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.status(201).json(priority);
@@ -96,7 +97,7 @@ export async function updatePriority(
     const priority =
       await prioritiesService.editPriority(
         requireParam(req.params.id, "id"),
-        req.user!.organizationId,
+        requireOrganizationId(req),
         body
       );
 
@@ -115,7 +116,7 @@ export async function activatePriority(
     const priority =
       await prioritiesService.activatePriority(
         requireParam(req.params.id, "id"),
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.status(200).json(priority);
@@ -133,7 +134,7 @@ export async function deactivatePriority(
     const priority =
       await prioritiesService.deactivatePriority(
         requireParam(req.params.id, "id"),
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.status(200).json(priority);
@@ -150,7 +151,7 @@ export async function deletePriority(
   try {
     await prioritiesService.removePriority(
       requireParam(req.params.id, "id"),
-      req.user!.organizationId
+      requireOrganizationId(req)
     );
 
     return res.status(200).json({

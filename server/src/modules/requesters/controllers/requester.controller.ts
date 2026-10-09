@@ -4,6 +4,7 @@ import type {
 } from "express";
 
 import { requireParam } from "../../../lib/params.js";
+import { requireOrganizationId } from "../../../lib/request.js";
 
 import type {
   AuthenticatedRequest,
@@ -35,7 +36,7 @@ export async function getRequesters(
 
     const requesters =
       await requesterService.getRequesters(
-        req.user!.organizationId,
+        requireOrganizationId(req),
         query
       );
 
@@ -54,7 +55,7 @@ export async function getRequester(
     const requester =
       await requesterService.getRequesterById(
         requireParam(req.params.id, "id"),
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.status(200).json(requester);
@@ -75,7 +76,7 @@ export async function createRequester(
     const requester =
       await requesterService.createNewRequester(
         body,
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res
@@ -98,7 +99,7 @@ export async function updateRequester(
     const requester =
       await requesterService.editRequester(
         requireParam(req.params.id, "id"),
-        req.user!.organizationId,
+        requireOrganizationId(req),
         body
       );
 
@@ -117,7 +118,7 @@ export async function activateRequester(
     const requester =
       await requesterService.activateRequester(
         requireParam(req.params.id, "id"),
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.status(200).json(requester);
@@ -135,7 +136,7 @@ export async function deactivateRequester(
     const requester =
       await requesterService.deactivateRequester(
         requireParam(req.params.id, "id"),
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.status(200).json(requester);
@@ -152,7 +153,7 @@ export async function deleteRequester(
   try {
     await requesterService.removeRequester(
       requireParam(req.params.id, "id"),
-      req.user!.organizationId
+      requireOrganizationId(req)
     );
 
     return res.status(200).json({

@@ -4,6 +4,7 @@ import type {
 } from "express";
 
 import { requireParam } from "../../../lib/params.js";
+import { requireOrganizationId } from "../../../lib/request.js";
 
 import type {
   AuthenticatedRequest,
@@ -35,7 +36,7 @@ export async function getSlas(
 
     const slas =
       await slaService.getSlas(
-        req.user!.organizationId,
+        requireOrganizationId(req),
         query
       );
 
@@ -54,7 +55,7 @@ export async function getSla(
     const sla =
       await slaService.getSlaById(
         requireParam(req.params.id, "id"),
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.status(200).json(sla);
@@ -75,7 +76,7 @@ export async function createSla(
     const sla =
       await slaService.createNewSla(
         body,
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.status(201).json(sla);
@@ -96,7 +97,7 @@ export async function updateSla(
     const sla =
       await slaService.editSla(
         requireParam(req.params.id, "id"),
-        req.user!.organizationId,
+        requireOrganizationId(req),
         body
       );
 
@@ -115,7 +116,7 @@ export async function activateSla(
     const sla =
       await slaService.activateSla(
         requireParam(req.params.id, "id"),
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.status(200).json(sla);
@@ -133,7 +134,7 @@ export async function deactivateSla(
     const sla =
       await slaService.deactivateSla(
         requireParam(req.params.id, "id"),
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.status(200).json(sla);
@@ -150,7 +151,7 @@ export async function deleteSla(
   try {
     await slaService.removeSla(
       requireParam(req.params.id, "id"),
-      req.user!.organizationId
+      requireOrganizationId(req)
     );
 
     return res.status(200).json({

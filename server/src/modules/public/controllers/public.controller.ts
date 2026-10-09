@@ -19,6 +19,25 @@ import {
 
 import { prisma } from "../../../lib/prisma.js";
 
+import { createTicketWithNextNumber } from "../../tickets/repositories/ticket.repository.js";
+
+import { findActiveSlaByPriority } from "../../sla/repositories/sla.repository.js";
+
+import { calculateSlaDeadlines } from "../../automation/index.js";
+
+/**
+ * Fallback SLA for public submissions when the organization has no active SLA
+ * for its default priority.
+ *
+ * The authenticated ticket service rejects a ticket when no SLA matches
+ * (400 "No active SLA found for the selected priority"), but a public
+ * submission must always succeed. To keep SLA monitoring meaningful without a
+ * schema change, we fall back to platform defaults: 24 hours to first response
+ * and 72 hours to resolution.
+ */
+const DEFAULT_RESPONSE_TIME_MINUTES = 24 * 60;
+const DEFAULT_RESOLUTION_TIME_MINUTES = 72 * 60;
+
 export async function submitRequest(
   req: Request,
   res: Response,
@@ -133,36 +152,59 @@ export async function submitRequest(
     }
     console.log('[Public Submit] Category found/created:', defaultCategory.id);
 
-    // 6. Generate ticket number (same method as existing ticket service)
-    console.log('[Public Submit] Generating ticket number');
-    const lastTicket = await prisma.ticket.findFirst({
-      where: { organizationId: org.id },
-      orderBy: { ticketNumber: 'desc' },
-      select: { ticketNumber: true },
-    });
+    // 6. Resolve SLA deadlines from the organization's active SLA for the
+    // default priority, reusing the same utilities as the authenticated ticket
+    // service. When no SLA matches, fall back to platform defaults so the
+    // submission still succeeds with future (never "now") deadlines.
+    console.log('[Public Submit] Resolving SLA deadlines');
+    const sla = await findActiveSlaByPriority(defaultPriority.id, org.id);
 
-    const nextTicketNumber = (lastTicket?.ticketNumber ?? 0) + 1;
-    console.log('[Public Submit] Next ticket number:', nextTicketNumber);
+    const { responseDueAt, resolutionDueAt } = calculateSlaDeadlines(
+      sla?.responseTimeMinutes ?? DEFAULT_RESPONSE_TIME_MINUTES,
+      sla?.resolutionTimeMinutes ?? DEFAULT_RESOLUTION_TIME_MINUTES
+    );
 
-    // 7. Create the Ticket (no SLA for public submissions)
+    // 7. Create the Ticket. The per-organization ticket number is allocated
+    // atomically by the same logic the authenticated ticket service uses, so
+    // concurrent submissions (public or internal) can never collide.
     console.log('[Public Submit] Creating ticket');
-    const ticket = await prisma.ticket.create({
-      data: {
-        ticketNumber: nextTicketNumber,
+    const ticket = await createTicketWithNextNumber(
+      org.id,
+      (ticketNumber) => ({
+        ticketNumber,
         title: body.subject,
         description: body.description,
         status: 'NEW',
         source: 'PORTAL',
-        requesterId: requester.id,
-        organizationId: org.id,
-        createdById: adminUser.id,
-        assignedToId: null,
-        priorityId: defaultPriority.id,
-        categoryId: defaultCategory.id,
-        responseDueAt: new Date(), // Placeholder, will be set by agent
-        resolutionDueAt: new Date(), // Placeholder, will be set by agent
-      },
-    });
+        requester: {
+          connect: {
+            id: requester.id,
+          },
+        },
+        organization: {
+          connect: {
+            id: org.id,
+          },
+        },
+        createdBy: {
+          connect: {
+            id: adminUser.id,
+          },
+        },
+        priority: {
+          connect: {
+            id: defaultPriority.id,
+          },
+        },
+        category: {
+          connect: {
+            id: defaultCategory.id,
+          },
+        },
+        responseDueAt,
+        resolutionDueAt,
+      })
+    );
     console.log('[Public Submit] Ticket created:', ticket.id);
 
     // 8. Return success response

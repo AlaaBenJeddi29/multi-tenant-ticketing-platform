@@ -8,6 +8,7 @@ import type {
 } from "../../../middleware/auth.middleware.js";
 
 import { requireParam } from "../../../lib/params.js";
+import { requireOrganizationId } from "../../../lib/request.js";
 
 import {
   updateOrganizationSchema,
@@ -65,7 +66,7 @@ export async function getMyOrganization(
   try {
     const organization =
       await organizationService.getMyOrganization(
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.status(200).json(
@@ -119,7 +120,7 @@ export async function updateMyOrganization(
 
     const organization =
       await organizationService.updateMyOrganization(
-        req.user!.organizationId,
+        requireOrganizationId(req),
         body
       );
 

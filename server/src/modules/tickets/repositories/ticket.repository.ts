@@ -183,13 +183,45 @@ export function findTicketById(
   });
 }
 
-export function createTicket(
-  data: Prisma.TicketCreateInput
+/**
+ * Allocates the next per-organization ticket number and creates the ticket in
+ * a single transaction.
+ *
+ * A transaction-scoped Postgres advisory lock, keyed by the organization,
+ * serializes concurrent allocations for the same tenant so two requests can
+ * never read the same maximum and compute the same number. The lock is
+ * released automatically when the transaction ends, which makes it safe with
+ * connection pooling, and it does not affect other tenants. The
+ * (organizationId, ticketNumber) unique index is the final safety net.
+ */
+export function createTicketWithNextNumber(
+  organizationId: string,
+  build: (ticketNumber: number) => Prisma.TicketCreateInput
 ) {
-  return prisma.ticket.create({
-    data,
+  return prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext('ticket_number'), hashtext(${organizationId}))::text AS ok`;
 
-    select: ticketSelect,
+    const last = await tx.ticket.findFirst({
+      where: {
+        organizationId,
+      },
+
+      orderBy: {
+        ticketNumber: "desc",
+      },
+
+      select: {
+        ticketNumber: true,
+      },
+    });
+
+    const nextTicketNumber = (last?.ticketNumber ?? 0) + 1;
+
+    return tx.ticket.create({
+      data: build(nextTicketNumber),
+
+      select: ticketSelect,
+    });
   });
 }
 
@@ -203,24 +235,6 @@ export function deleteTicket(
 
     select: {
       id: true,
-    },
-  });
-}
-
-export function getLastTicketNumber(
-  organizationId: string
-) {
-  return prisma.ticket.findFirst({
-    where: {
-      organizationId,
-    },
-
-    orderBy: {
-      ticketNumber: "desc",
-    },
-
-    select: {
-      ticketNumber: true,
     },
   });
 }

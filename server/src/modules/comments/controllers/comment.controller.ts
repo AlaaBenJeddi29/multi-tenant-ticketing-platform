@@ -4,6 +4,7 @@ import type {
 } from "express";
 
 import { requireParam } from "../../../lib/params.js";
+import { requireOrganizationId } from "../../../lib/request.js";
 
 import type {
   AuthenticatedRequest,
@@ -39,7 +40,7 @@ export async function getComments(
           req.params.ticketId,
           "ticketId"
         ),
-        req.user!.organizationId,
+        requireOrganizationId(req),
         query
       );
 
@@ -68,7 +69,7 @@ export async function createComment(
           req.params.ticketId,
           "ticketId"
         ),
-        req.user!.organizationId,
+        requireOrganizationId(req),
         req.user!.userId,
         body
       );
@@ -98,6 +99,7 @@ export async function updateComment(
           req.params.id,
           "id"
         ),
+        requireOrganizationId(req),
         req.user!.userId,
         req.user!.role,
         body
@@ -122,6 +124,7 @@ export async function deleteComment(
         req.params.id,
         "id"
       ),
+      requireOrganizationId(req),
       req.user!.userId,
       req.user!.role
     );

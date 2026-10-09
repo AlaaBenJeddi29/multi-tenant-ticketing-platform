@@ -3,14 +3,11 @@ import type { Response, NextFunction } from "express";
 import { requireParam } from "../../../lib/params.js";
 import type { AuthenticatedRequest } from "../../../middleware/auth.middleware.js";
 
-import { createNotificationSchema } from "../dto/create-notification.dto.js";
-
 import { updateNotificationSchema } from "../dto/update-notification.dto.js";
 
 import { listNotificationsQuerySchema } from "../dto/list-notifications.dto.js";
 
 import {
-  createNewNotification,
   getNotificationById,
   getNotifications,
   getUnreadCount,
@@ -51,25 +48,6 @@ export async function getNotificationHandler(
     );
 
     res.status(200).json({
-      success: true,
-      data: notification,
-    });
-  } catch (error) {
-    next(error);
-  }
-}
-
-export async function createNotificationHandler(
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    const dto = createNotificationSchema.parse(req.body);
-
-    const notification = await createNewNotification(dto);
-
-    res.status(201).json({
       success: true,
       data: notification,
     });

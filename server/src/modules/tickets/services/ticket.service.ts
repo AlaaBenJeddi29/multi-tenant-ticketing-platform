@@ -14,6 +14,16 @@ import type { ListTicketsQuery } from "../dto/list-tickets.dto.js";
 
 import { findActiveSlaByPriority } from "../../sla/repositories/sla.repository.js";
 
+import { findPriorityById } from "../../priorities/repositories/priorities.repository.js";
+
+import { findCategoryById } from "../../categories/repositories/categories.repository.js";
+
+import { findRequesterById } from "../../requesters/repositories/requester.respoitroy.js";
+
+import { findAssetById } from "../../assets/repositories/assets.repository.js";
+
+import { findUserById } from "../../users/repositories/users.repository.js";
+
 import {
   calculateSlaDeadlines,
   processResolution,
@@ -23,11 +33,10 @@ import {
 import { createNewNotification } from "../../notifications/services/notification.service.js";
 
 import {
-  createTicket,
+  createTicketWithNextNumber,
   deleteTicket,
   findTicketById,
   findTickets,
-  getLastTicketNumber,
   updateTicket,
 } from "../repositories/ticket.repository.js";
 
@@ -35,6 +44,82 @@ import {
   toTicketResponse,
   toTicketsListResponse,
 } from "../mappers/ticket.mapper.js";
+
+/**
+ * Every tenant-scoped relation a client can attach to a ticket must be verified
+ * against the caller's organization before it is connected. Without this, an id
+ * from another tenant could be linked to the ticket and then leaked back through
+ * the ticket response (requester PII, asset serial numbers, assignee email).
+ */
+async function assertPriorityBelongsToOrg(
+  priorityId: string,
+  organizationId: string
+) {
+  const priority = await findPriorityById(priorityId, organizationId);
+
+  if (!priority) {
+    throw new AppError(
+      400,
+      "Invalid priority: it does not belong to your organization."
+    );
+  }
+}
+
+async function assertCategoryBelongsToOrg(
+  categoryId: string,
+  organizationId: string
+) {
+  const category = await findCategoryById(categoryId, organizationId);
+
+  if (!category) {
+    throw new AppError(
+      400,
+      "Invalid category: it does not belong to your organization."
+    );
+  }
+}
+
+async function assertRequesterBelongsToOrg(
+  requesterId: string,
+  organizationId: string
+) {
+  const requester = await findRequesterById(requesterId, organizationId);
+
+  if (!requester) {
+    throw new AppError(
+      400,
+      "Invalid requester: it does not belong to your organization."
+    );
+  }
+}
+
+async function assertAssetBelongsToOrg(
+  assetId: string,
+  organizationId: string
+) {
+  const asset = await findAssetById(assetId, organizationId);
+
+  if (!asset) {
+    throw new AppError(
+      400,
+      "Invalid asset: it does not belong to your organization."
+    );
+  }
+}
+
+async function assertAssigneeEligible(
+  assignedToId: string,
+  organizationId: string
+) {
+  const user = await findUserById(assignedToId, organizationId);
+
+  if (!user || !user.isActive) {
+    throw new AppError(
+      400,
+      "Invalid assignee: the user does not belong to your organization or is inactive."
+    );
+  }
+}
 
 export async function getTickets(
   organizationId: string,
@@ -72,9 +157,17 @@ export async function createNewTicket(
   organizationId: string,
   createdById: string
 ) {
-  const lastTicket = await getLastTicketNumber(organizationId);
-
-  const nextTicketNumber = (lastTicket?.ticketNumber ?? 0) + 1;
+  await Promise.all([
+    assertPriorityBelongsToOrg(dto.priorityId, organizationId),
+    assertCategoryBelongsToOrg(dto.categoryId, organizationId),
+    assertRequesterBelongsToOrg(dto.requesterId, organizationId),
+    ...(dto.assetId
+      ? [assertAssetBelongsToOrg(dto.assetId, organizationId)]
+      : []),
+    ...(dto.assignedToId
+      ? [assertAssigneeEligible(dto.assignedToId, organizationId)]
+      : []),
+  ]);
 
   const sla = await findActiveSlaByPriority(dto.priorityId, organizationId);
 
@@ -90,63 +183,66 @@ export async function createNewTicket(
     sla.resolutionTimeMinutes
   );
 
-  const ticket = await createTicket({
-    ticketNumber: nextTicketNumber,
+  const ticket = await createTicketWithNextNumber(
+    organizationId,
+    (ticketNumber) => ({
+      ticketNumber,
 
-    title: dto.title,
+      title: dto.title,
 
-    description: dto.description,
+      description: dto.description,
 
-    responseDueAt,
+      responseDueAt,
 
-    resolutionDueAt,
+      resolutionDueAt,
 
-    organization: {
-      connect: {
-        id: organizationId,
-      },
-    },
-
-    priority: {
-      connect: {
-        id: dto.priorityId,
-      },
-    },
-
-    category: {
-      connect: {
-        id: dto.categoryId,
-      },
-    },
-
-    requester: {
-      connect: {
-        id: dto.requesterId,
-      },
-    },
-
-    createdBy: {
-      connect: {
-        id: createdById,
-      },
-    },
-
-    ...(dto.assetId && {
-      asset: {
+      organization: {
         connect: {
-          id: dto.assetId,
+          id: organizationId,
         },
       },
-    }),
 
-    ...(dto.assignedToId && {
-      assignedTo: {
+      priority: {
         connect: {
-          id: dto.assignedToId,
+          id: dto.priorityId,
         },
       },
-    }),
-  });
+
+      category: {
+        connect: {
+          id: dto.categoryId,
+        },
+      },
+
+      requester: {
+        connect: {
+          id: dto.requesterId,
+        },
+      },
+
+      createdBy: {
+        connect: {
+          id: createdById,
+        },
+      },
+
+      ...(dto.assetId && {
+        asset: {
+          connect: {
+            id: dto.assetId,
+          },
+        },
+      }),
+
+      ...(dto.assignedToId && {
+        assignedTo: {
+          connect: {
+            id: dto.assignedToId,
+          },
+        },
+      }),
+    })
+  );
 
   await evaluateTrigger("TICKET_CREATED", ticket.id, organizationId);
 
@@ -171,6 +267,26 @@ export async function editTicket(
   triggeredByAutomation: boolean = false
 ) {
   await getTicketById(id, organizationId);
+
+  if (dto.priorityId !== undefined) {
+    await assertPriorityBelongsToOrg(dto.priorityId, organizationId);
+  }
+
+  if (dto.categoryId !== undefined) {
+    await assertCategoryBelongsToOrg(dto.categoryId, organizationId);
+  }
+
+  if (dto.requesterId !== undefined) {
+    await assertRequesterBelongsToOrg(dto.requesterId, organizationId);
+  }
+
+  if (dto.assetId !== undefined) {
+    await assertAssetBelongsToOrg(dto.assetId, organizationId);
+  }
+
+  if (dto.assignedToId !== undefined) {
+    await assertAssigneeEligible(dto.assignedToId, organizationId);
+  }
 
   const data: Prisma.TicketUpdateInput = {};
 
@@ -257,6 +373,8 @@ export async function assignTicket(
   if (!existing) {
     throw new AppError(404, "Ticket not found.");
   }
+
+  await assertAssigneeEligible(dto.assignedToId, organizationId);
 
   const ticket = await updateTicket(id, {
     assignedTo: {

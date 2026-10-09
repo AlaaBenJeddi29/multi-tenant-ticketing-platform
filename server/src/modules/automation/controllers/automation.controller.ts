@@ -5,6 +5,7 @@ import type {
 
 import { AppError } from "../../../lib/AppError.js";
 import { requireParam } from "../../../lib/params.js";
+import { requireOrganizationId } from "../../../lib/request.js";
 import { prisma } from "../../../lib/prisma.js";
 
 import type {
@@ -45,7 +46,7 @@ export async function getAutomationRules(
 
     const rules =
       await automationService.getAutomationRules(
-        req.user!.organizationId,
+        requireOrganizationId(req),
         query
       );
 
@@ -67,7 +68,7 @@ export async function getAutomationRule(
           req.params.id,
           "id"
         ),
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.status(200).json(rule);
@@ -87,7 +88,7 @@ export async function createAutomationRule(
         req.body
       );
 
-    const organizationId = req.user!.organizationId;
+    const organizationId = requireOrganizationId(req);
 
     // Database-level validation for actionValue
     if (body.action === "ASSIGN_AGENT" && body.actionValue) {
@@ -155,7 +156,7 @@ export async function updateAutomationRule(
         req.body
       );
 
-    const organizationId = req.user!.organizationId;
+    const organizationId = requireOrganizationId(req);
 
     // Database-level validation for actionValue (only if action is being updated)
     if (body.action === "ASSIGN_AGENT" && body.actionValue) {
@@ -226,7 +227,7 @@ export async function activateAutomationRule(
           req.params.id,
           "id"
         ),
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.status(200).json(rule);
@@ -247,7 +248,7 @@ export async function deactivateAutomationRule(
           req.params.id,
           "id"
         ),
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.status(200).json(rule);
@@ -267,7 +268,7 @@ export async function deleteAutomationRule(
         req.params.id,
         "id"
       ),
-      req.user!.organizationId
+      requireOrganizationId(req)
     );
 
     return res.status(200).json({
@@ -288,7 +289,7 @@ export async function getAutomationExecutions(
     const query = listExecutionsQuerySchema.parse(req.query);
 
     const { items, total } = await findAutomationExecutions(
-      req.user!.organizationId,
+      requireOrganizationId(req),
       query.page,
       query.pageSize
     );

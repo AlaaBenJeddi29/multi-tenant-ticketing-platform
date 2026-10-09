@@ -1,5 +1,6 @@
 import type { NextFunction, Response } from "express";
 import { requireParam } from "../../../lib/params.js";
+import { requireOrganizationId } from "../../../lib/request.js";
 import type { AuthenticatedRequest } from "../../../middleware/auth.middleware.js";
 import { createUserSchema } from "../dto/create-user.dto.js";
 import { updateUserSchema } from "../dto/update-user.dto.js";
@@ -15,7 +16,7 @@ export async function getUsers(
     const query = listUsersQuerySchema.parse(req.query);
 
     const users = await usersService.getUsers(
-      req.user!.organizationId,
+      requireOrganizationId(req),
       query
     );
 
@@ -34,7 +35,7 @@ export async function getUser(
     const userId = requireParam(req.params.id, "id");
     const user = await usersService.getUserById(
       userId,
-      req.user!.organizationId
+      requireOrganizationId(req)
     );
 
     return res.status(200).json(user);
@@ -53,7 +54,7 @@ export async function createUser(
 
     const user = await usersService.createNewUser(
       body,
-      req.user!.organizationId
+      requireOrganizationId(req)
     );
 
     return res.status(201).json(user);
@@ -73,7 +74,7 @@ export async function updateUser(
 
     const user = await usersService.editUser(
       userId,
-      req.user!.organizationId,
+      requireOrganizationId(req),
       body
     );
 
@@ -92,7 +93,7 @@ export async function activateUser(
     const userId = requireParam(req.params.id, "id");
     const user = await usersService.activateUser(
       userId,
-      req.user!.organizationId
+      requireOrganizationId(req)
     );
 
     return res.status(200).json(user);
@@ -110,7 +111,7 @@ export async function deactivateUser(
     const userId = requireParam(req.params.id, "id");
     const user = await usersService.deactivateUser(
       userId,
-      req.user!.organizationId
+      requireOrganizationId(req)
     );
 
     return res.status(200).json(user);
@@ -128,7 +129,7 @@ export async function deleteUser(
     const userId = requireParam(req.params.id, "id");
     await usersService.removeUser(
       userId,
-      req.user!.organizationId
+      requireOrganizationId(req)
     );
 
     return res.status(200).json({

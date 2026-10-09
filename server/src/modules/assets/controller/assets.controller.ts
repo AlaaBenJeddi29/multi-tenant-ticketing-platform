@@ -4,6 +4,7 @@ import type {
 } from "express";
 
 import { requireParam } from "../../../lib/params.js";
+import { requireOrganizationId } from "../../../lib/request.js";
 
 import type {
   AuthenticatedRequest,
@@ -35,7 +36,7 @@ export async function getAssets(
 
     const assets =
       await assetsService.getAssets(
-        req.user!.organizationId,
+        requireOrganizationId(req),
         query
       );
 
@@ -54,7 +55,7 @@ export async function getAsset(
     const asset =
       await assetsService.getAssetById(
         requireParam(req.params.id, "id"),
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.status(200).json(asset);
@@ -75,7 +76,7 @@ export async function createAsset(
     const asset =
       await assetsService.createNewAsset(
         body,
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.status(201).json(asset);
@@ -96,7 +97,7 @@ export async function updateAsset(
     const asset =
       await assetsService.editAsset(
         requireParam(req.params.id, "id"),
-        req.user!.organizationId,
+        requireOrganizationId(req),
         body
       );
 
@@ -115,7 +116,7 @@ export async function activateAsset(
     const asset =
       await assetsService.activateAsset(
         requireParam(req.params.id, "id"),
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.status(200).json(asset);
@@ -133,7 +134,7 @@ export async function maintenanceAsset(
     const asset =
       await assetsService.maintenanceAsset(
         requireParam(req.params.id, "id"),
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.status(200).json(asset);
@@ -151,7 +152,7 @@ export async function retireAsset(
     const asset =
       await assetsService.retireAsset(
         requireParam(req.params.id, "id"),
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.status(200).json(asset);
@@ -168,7 +169,7 @@ export async function deleteAsset(
   try {
     await assetsService.removeAsset(
       requireParam(req.params.id, "id"),
-      req.user!.organizationId
+      requireOrganizationId(req)
     );
 
     return res.status(200).json({

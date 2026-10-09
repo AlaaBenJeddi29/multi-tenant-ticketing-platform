@@ -224,7 +224,7 @@ model User {
 
 model Ticket {
   id           String       @id @default(cuid())
-  ticketNumber Int          @unique
+  ticketNumber Int
   title        String
   description  String?
   status       TicketStatus @default(NEW)
@@ -266,6 +266,8 @@ model Ticket {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, ticketNumber])
 }
 
 model Sla {

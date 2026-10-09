@@ -4,6 +4,7 @@ import type {
 } from "express";
 
 import { requireParam } from "../../../lib/params.js";
+import { requireOrganizationId } from "../../../lib/request.js";
 
 import type {
   AuthenticatedRequest,
@@ -35,7 +36,7 @@ export async function getCategories(
 
     const categories =
       await categoriesService.getCategories(
-        req.user!.organizationId,
+        requireOrganizationId(req),
         query
       );
 
@@ -54,7 +55,7 @@ export async function getCategory(
     const category =
       await categoriesService.getCategoryById(
         requireParam(req.params.id, "id"),
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.json(category);
@@ -75,7 +76,7 @@ export async function createCategory(
     const category =
       await categoriesService.createNewCategory(
         body,
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res
@@ -98,7 +99,7 @@ export async function updateCategory(
     const category =
       await categoriesService.editCategory(
         requireParam(req.params.id, "id"),
-        req.user!.organizationId,
+        requireOrganizationId(req),
         body
       );
 
@@ -117,7 +118,7 @@ export async function activateCategory(
     const category =
       await categoriesService.activateCategory(
         requireParam(req.params.id, "id"),
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.json(category);
@@ -135,7 +136,7 @@ export async function deactivateCategory(
     const category =
       await categoriesService.deactivateCategory(
         requireParam(req.params.id, "id"),
-        req.user!.organizationId
+        requireOrganizationId(req)
       );
 
     return res.json(category);
@@ -152,7 +153,7 @@ export async function deleteCategory(
   try {
     await categoriesService.removeCategory(
       requireParam(req.params.id, "id"),
-      req.user!.organizationId
+      requireOrganizationId(req)
     );
 
     return res.json({
