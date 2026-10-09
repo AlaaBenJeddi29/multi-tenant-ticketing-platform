@@ -130,8 +130,20 @@ export async function refresh(
         });
     }
 
-    // Revoke the old refresh token (rotation - never reuse)
-    await revokeRefreshToken(refreshToken);
+    // Atomically claim (revoke) the old refresh token before rotating. The
+    // conditional update only succeeds for the first concurrent request, so a
+    // replayed or parallel refresh cannot mint additional sessions.
+    const claim = await revokeRefreshToken(refreshToken);
+
+    if (!claim || claim.count !== 1) {
+      return res
+        .clearCookie("accessToken", accessTokenCookie)
+        .clearCookie("refreshToken", refreshTokenCookie)
+        .status(401)
+        .json({
+          message: "Invalid or expired refresh token",
+        });
+    }
 
     // Generate new tokens
     const newAccessToken = signAccessToken({
