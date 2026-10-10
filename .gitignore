@@ -5,3 +5,6 @@
 **/*test*.md
 **/*test*.ps1
 **/*smoke-test*
+
+# Local Qoder permission/settings state (machine-specific)
+.qoder/settings.local.json
