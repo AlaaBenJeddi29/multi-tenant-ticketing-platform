@@ -3,7 +3,7 @@ import type { PaginatedResponse } from "@/types/pagination.types";
 export interface Priority {
   id: string;
   name: string;
-  level: number;
+  level: string;
   color: string;
   responseTimeMinutes: number;
   resolutionTimeMinutes: number;

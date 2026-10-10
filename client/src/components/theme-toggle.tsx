@@ -8,7 +8,7 @@ import {
 import { useTheme } from "@/context/ThemeContext";
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { setTheme } = useTheme();
 
   return (
     <Popover>

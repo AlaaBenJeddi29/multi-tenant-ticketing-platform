@@ -32,7 +32,6 @@ import {
   CONDITION_LABELS,
   ACTION_LABELS,
   conditionRequiresValue,
-  actionRequiresValue,
 } from "../utils/labels";
 
 import type { AutomationRule } from "../types/automation.types";
