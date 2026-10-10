@@ -1,38 +1,63 @@
 name: CI
 
-# "on" = the events that trigger this workflow.
-# We run CI when code is pushed to main, and on every pull request.
+# Run on pushes to main and on pull requests that target main.
 on:
   push:
     branches: [main]
   pull_request:
+    branches: [main]
 
-# A workflow contains one or more jobs. Jobs run in parallel by default,
-# each on its own fresh virtual machine.
+# Least privilege: CI only reads the repository. No secrets or write scopes needed.
+permissions:
+  contents: read
+
+# Cancel superseded runs on the same ref so only the latest commit is validated.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  # ---- Job 1: the backend (Express + Prisma + TypeScript) ----
+  # ---- Backend: Express + Prisma + TypeScript, with a disposable PostgreSQL ----
   server:
-    name: Server typecheck
+    name: Server (typecheck + tests)
     runs-on: ubuntu-24.04
 
-    # Every "run" command below executes inside the server/ folder.
+    # Every "run" command executes inside the server/ folder.
     defaults:
       run:
         working-directory: server
 
-    # The Prisma config reads DATABASE_URL. CI has no .env file, so we provide
-    # a throwaway value. `prisma generate` does not connect to the database.
+    # The Prisma CLI reads DATABASE_URL (prisma.config.ts) for generate/migrate,
+    # and the integration suite reads TEST_DATABASE_URL. Both point at the
+    # disposable service database below — never the developer's .env database.
+    # These are throwaway CI-only credentials for an ephemeral, localhost-only
+    # container, so they are not secrets.
     env:
-      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      DATABASE_URL: postgresql://ticketing_test:ticketing_test@localhost:5432/ticketing_test
+      TEST_DATABASE_URL: postgresql://ticketing_test:ticketing_test@localhost:5432/ticketing_test
 
-    # "steps" run in order, top to bottom, on the same machine.
+    # An ephemeral PostgreSQL for integration tests. GitHub waits for the health
+    # check to pass before any step runs, so migrations and tests only start once
+    # the database is accepting connections.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ticketing_test
+          POSTGRES_PASSWORD: ticketing_test
+          POSTGRES_DB: ticketing_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ticketing_test -d ticketing_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
-      # Download the repository into the runner's workspace.
       - name: Check out repository
         uses: actions/checkout@v7
 
-      # Install and cache Node.js. "cache: npm" reuses the npm download cache
-      # between runs, keyed by the lockfile, so installs are much faster.
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
@@ -40,22 +65,35 @@ jobs:
           cache: npm
           cache-dependency-path: server/package-lock.json
 
-      # Clean, lockfile-exact install.
       - name: Install dependencies
         run: npm ci
 
-      # The generated Prisma client is gitignored, so it must be created here
-      # before TypeScript can resolve the imports from src/generated/prisma.
+      # The generated Prisma client is gitignored, so it must be created before
+      # TypeScript can resolve imports from src/generated/prisma.
       - name: Generate Prisma client
         run: npx prisma generate
 
-      # Compile-check the whole server without emitting output files.
-      - name: Typecheck
+      # Apply the committed migrations to the empty CI database. Non-destructive.
+      - name: Apply database migrations
+        run: npx prisma migrate deploy
+
+      # Compile-check production sources without emitting output.
+      - name: Typecheck (production)
         run: npx tsc --noEmit
 
-  # ---- Job 2: the frontend (React + Vite + TypeScript) ----
+      # Compile-check the unit and integration test files (tsconfig.test.json).
+      - name: Typecheck (tests)
+        run: npm run typecheck:tests
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Run integration tests
+        run: npm run test:integration
+
+  # ---- Frontend: React + Vite + TypeScript ----
   client:
-    name: Client typecheck
+    name: Client (typecheck)
     runs-on: ubuntu-24.04
 
     defaults:

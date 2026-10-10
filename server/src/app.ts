@@ -3,7 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
-import { startAutomationJobs } from "./modules/automation/jobs/automation.jobs.js";
+
 // Route Imports
 import publicRoutes from "./modules/public/routes/public.routes.js";
 import authRoutes from "./modules/auth/routes/auth.routes.js";
@@ -28,7 +28,7 @@ import notificationRoutes from "./modules/notifications/routes/notification.rout
 import adminRoutes from "./modules/admin/routes/admin.routes.js";
 
 const app = express();
-startAutomationJobs();
+
 // 1. Security & Logging Middlewares
 app.use(helmet());
 app.use(morgan("dev"));
