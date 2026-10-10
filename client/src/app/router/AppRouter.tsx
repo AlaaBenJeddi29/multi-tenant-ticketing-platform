@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import RootLayout from "../layouts/RootLayout";
 import PublicLayout from "../layouts/PublicLayout";
 import ProtectedLayout from "../layouts/ProtectedLayout";
+import SettingsLayout from "../layouts/SettingsLayout";
 
 import HomePage from "@/features/home/pages/HomePage";
 import LoginPage from "@/features/auth/pages/LoginPage";
@@ -66,6 +67,12 @@ const router = createBrowserRouter([
       {
         element: <RequireAuth />,
         children: [
+          // Shared route: every authenticated role manages its own profile/security
+          {
+            path: ROUTES.SETTINGS,
+            element: <SettingsLayout />,
+            children: [{ index: true, element: <SettingsPage /> }],
+          },
           // SUPER_ADMIN-only routes (standalone AdminLayout, no ProtectedLayout)
           {
             element: <RequireRole roles={["SUPER_ADMIN"]} />,
@@ -81,7 +88,6 @@ const router = createBrowserRouter([
                   { path: ROUTES.ADMIN_ACTIVITY, element: <AdminActivityPage /> },
                   { path: ROUTES.ADMIN_SYSTEM_HEALTH, element: <AdminSystemHealthPage /> },
                   { path: ROUTES.ADMIN_SETTINGS, element: <AdminSettingsPage /> },
-                  { path: ROUTES.SETTINGS, element: <SettingsPage /> },
                 ],
               },
             ],
@@ -103,7 +109,6 @@ const router = createBrowserRouter([
                   { path: ROUTES.TICKET_DETAIL, element: <TicketDetailPage /> },
                   { path: ROUTES.SLAS, element: <SlasPage /> },
                   { path: ROUTES.NOTIFICATIONS, element: <NotificationsPage /> },
-                  { path: ROUTES.SETTINGS, element: <SettingsPage /> },
                   // ORG_ADMIN-only routes
                   {
                     element: <RequireRole roles={["ORG_ADMIN"]} />,
